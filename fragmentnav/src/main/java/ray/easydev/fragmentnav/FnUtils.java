@@ -7,8 +7,8 @@ import android.support.annotation.NonNull;
  * Created by Ray on 2017/11/23.
  */
 
-public class FnUtils {
-    public final static int INVALID_INT = -1;
+class FnUtils {
+    final static int INVALID_INT = FnFragment.INVALID_INT;
 
     public @NonNull
     static Bundle safeGetArguments(FnFragment fragment) {

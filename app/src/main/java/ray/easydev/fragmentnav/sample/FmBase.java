@@ -40,6 +40,7 @@ public class FmBase extends FnFragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View childView = inflater.inflate(R.layout.fm_fn_test, container, false);
+        childView.setTag(getClass().getSimpleName());
         ((TextView) childView.findViewById(R.id.tv_log)).setText(getClass().getSimpleName());
 
         Androids.setOnClickListener(childView, this, R.id.test_btn);

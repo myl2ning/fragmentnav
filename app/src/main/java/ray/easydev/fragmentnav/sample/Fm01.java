@@ -15,33 +15,29 @@ import ray.easydev.fragmentnav.utils.Trace;
  */
 
 public class Fm01 extends FmBase {
+
+    @Override
+    public void onNewIntent(FragmentIntent intent) {
+        super.onNewIntent(intent);
+        Trace.p(getClass(), "onNewIntent:%s", intent);
+    }
+
     @Override
     public void onClick(View v) {
         super.onClick(v);
 //        startFragment(new FragmentIntent(Fm02.class));
 //        testBatchStart(); //测试批量启动
-        testFinishTask();
+//        testFinishTask();
 //        testStartForResult();
 //        testStartSingle();
+        testBringToFront();
+//        testBatchStart1();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-//        if(isVisible()){
-//            getView().post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    startFragment(new FragmentIntent(Fm03.class));
-//                }
-//            });
-//        }
     }
 
     private void testFinishTask(){
@@ -70,6 +66,21 @@ public class Fm01 extends FmBase {
         startFragment(new FragmentIntent(Fm02.class));
     }
 
+    private void testBatchStart1(){
+        FragmentIntent intent02 = new FragmentIntent(Fm02.class);
+        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent12 = new FragmentIntent(Fm12.class);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+
+        getFragmentNav().startFragment(this, intent11, intent12, intent21);
+    }
+
+    private void testBringToFront(){
+        FragmentIntent intent02 = new FragmentIntent(Fm02.class);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent23 = new FragmentIntent(Fm23BTF.class);
+        getFragmentNav().startFragment(this, intent02, intent21, intent23);
+    }
     @Override
     public void onFragmentResult(int requestCode, int resultCode, Object data) {
         super.onFragmentResult(requestCode, resultCode, data);

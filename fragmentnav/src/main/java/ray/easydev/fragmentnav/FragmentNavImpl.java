@@ -24,11 +24,14 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import ray.easydev.fragmentnav.utils.LogLevel;
 import ray.easydev.fragmentnav.utils.Trace;
 
+import static ray.easydev.fragmentnav.FnUtils.INVALID_INT;
 import static ray.easydev.fragmentnav.FnUtils.criticalError;
 import static ray.easydev.fragmentnav.FnUtils.hasBit;
 
@@ -45,18 +48,18 @@ class FragmentNavImpl implements FragmentNav {
     private ArrayList<PendingOps> mPendingOps = new ArrayList<>();
     private ArrayList<Runnable> mPendingCalls = new ArrayList<>();
 
-    private FragmentTask mFragmentTask;
+    private FragmentTaskManager mFragmentTask;
 
-    private int mContainerId;
     private boolean mIsActivitySavedInstanceState, mIsRestoring;
 
-    FragmentNavImpl(@NonNull FragmentActivity activity, int resId, @Nullable Bundle savedInstanceState) {
+    int id;
+    FragmentNavImpl(@NonNull FragmentActivity activity, int containerViewID, @Nullable Bundle savedInstanceState) {
         activity.getApplication().registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
 
         mIsRestoring = savedInstanceState != null;
-        mFragmentTask = new FragmentTask(this);
+        mFragmentTask = new FragmentTaskManager(this, containerViewID);
         mActivity = activity;
-        mContainerId = resId;
+        id = containerViewID;
         initHandler(activity);
     }
 
@@ -77,18 +80,20 @@ class FragmentNavImpl implements FragmentNav {
         return mActivity;
     }
 
-    public int getViewContainerId() {
-        return mContainerId;
+    public FnFragment getCurrentFragment() {
+        return mFragmentTask.getCurrentFragment();
     }
 
     @Override
-    public FragmentTask getFragmentTask() {
-        return mFragmentTask;
+    public <T extends FnFragment> T findFragment(@NonNull String id) {
+        return mFragmentTask.findFragment(id);
     }
 
-    private FnFragment getCurrentFragment() {
-        return mFragmentTask.getCurrentFragment();
+    @Override
+    public boolean hasFragment(Class<? extends FnFragment> cls) {
+        return mFragmentTask.hasFragment(cls);
     }
+
 
     public @NonNull FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent... intents){
         return innerStartFragment(invoker, requestCode, intents);
@@ -422,7 +427,6 @@ class FragmentNavImpl implements FragmentNav {
     }
 
     private boolean tryCommit(ArrayList<Op> ops) {
-        Trace.p(TAG, "tryCommit:%s, %s", mIsActivitySavedInstanceState, mIsRestoring);
         if (!isReady()) {
             Trace.p(TAG, "Called after onSavedInstance or is during restore, save ops");
             mPendingOps.add(new PendingOps(ops));
@@ -448,10 +452,11 @@ class FragmentNavImpl implements FragmentNav {
     }
 
     private void printOps(List<Op> ops) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("\n** Ops **");
         for (Op op : ops) {
-            sb.append("\n").append(op);
+            sb.append("\n   ").append(op);
         }
+        sb.append("\n** Ops **");
         Trace.p(TAG, sb.toString());
     }
 
@@ -488,7 +493,7 @@ class FragmentNavImpl implements FragmentNav {
         return mFragmentTask.empty();
     }
 
-    private int fragmentSize() {
+    public int fragmentSize() {
         if (mActivity == null) {
             return 0;
         }
@@ -528,8 +533,18 @@ class FragmentNavImpl implements FragmentNav {
         mPendingCalls.clear();
     }
 
-    private int getTaskId(FnFragment fragment) {
-        return mFragmentTask.getTaskId(fragment, -1);
+    public int getTaskId(FnFragment fragment) {
+        return mFragmentTask.getTaskId(fragment, INVALID_INT);
+    }
+
+    @Override
+    public Collection<Integer> taskIds() {
+        return mFragmentTask.taskIds();
+    }
+
+    @Override
+    public Collection<FnFragment> getFragments(int taskId) {
+        return Collections.unmodifiableCollection(mFragmentTask.getFragments(taskId));
     }
 
     public static class PendingOps implements Parcelable, Serializable {

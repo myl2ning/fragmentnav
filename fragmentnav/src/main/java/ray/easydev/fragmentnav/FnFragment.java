@@ -15,6 +15,7 @@ import ray.easydev.fragmentnav.utils.Trace;
  * Created by Ray on 2017/11/21.
  */
 public class FnFragment extends Fragment {
+    public final static int INVALID_INT = -1;
     public final static int NO_ANIM = 0;
 
     private final static String _ARG_FRAGMENT_ID = FragmentNavImpl.IdGenerator.fromClass(FnFragment.class) + " fnId";

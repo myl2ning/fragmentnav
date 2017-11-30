@@ -125,7 +125,7 @@ class Op implements Parcelable, Serializable {
         }
         sb.append(" Anim:").append(enterAnim == 0 ? "NO-" : "YES-").append(exitAnim == 0 ? "NO" : "YES");
         if(fragment != null){
-            sb.append(" IS VISIBLE:").append(fragment.isVisible());
+            sb.append(" IS-VISIBLE:").append(fragment.isVisible());
         }
 
         return sb.toString();

@@ -16,4 +16,8 @@ public class FragmentNavHelper {
     public @NonNull static FragmentNav createBeforeSuperOnCreate(FragmentActivity fragmentActivity, int resId, Bundle savedInstanceState){
         return new FragmentNavImpl(fragmentActivity, resId, savedInstanceState);
     }
+
+    public static void onBackPressed(@NonNull FragmentNav fragmentNav){
+        fragmentNav.finish(fragmentNav.getCurrentFragment());
+    }
 }

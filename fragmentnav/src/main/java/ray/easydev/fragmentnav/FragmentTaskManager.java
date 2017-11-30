@@ -5,9 +5,12 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.SparseArray;
+import android.view.View;
 import android.view.ViewGroup;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -25,8 +28,8 @@ import static ray.easydev.fragmentnav.FnUtils.safeGetArguments;
  */
 
 @LogLevel(LogLevel.V)
-public class FragmentTask {
-    private final static Class TAG = FragmentTask.class;
+class FragmentTaskManager {
+    private final static Class TAG = FragmentTaskManager.class;
 
     private final static String _ARG_TASK_ID = "_arg_fragment_task_id_";
     private final static String _ARG_FRAGMENT_INDEX = "_arg_fragment_index";
@@ -34,9 +37,11 @@ public class FragmentTask {
     private SparseArray<ArrayList<FnFragment>> mFragmentTasks = new SparseArray<>();
     private FragmentNav fragmentNav;
     private FnFragment mCurrFragment;
+    private int mContainerViewId;
 
-    FragmentTask(FragmentNav fragmentNav) {
+    FragmentTaskManager(FragmentNav fragmentNav, int containerViewId) {
         this.fragmentNav = fragmentNav;
+        mContainerViewId = containerViewId;
     }
 
     private SparseArray<ArrayList<FnFragment>> actual(){
@@ -65,7 +70,7 @@ public class FragmentTask {
         final SparseArray<ArrayList<FnFragment>> copy = copy();
 
         for (Op op : ops) {
-            FnFragment fragment = op.fragment;
+            final FnFragment fragment = op.fragment;
             if (fragment == null) {
                 continue;
             }
@@ -86,7 +91,7 @@ public class FragmentTask {
 
                     task.add(fragment);
                     showFragment = fragment;
-                    transaction.add(fragmentNav.getViewContainerId(), fragment);
+                    transaction.add(mContainerViewId, fragment, fragmentIntent.getTag());
                 }
 
                 break;
@@ -116,6 +121,7 @@ public class FragmentTask {
                         fragmentTasks.remove(taskId);
                     }
 
+                    bringFragmentToFrontInFragmantManager(fragment);
                     bringViewToFront(fragment);
                 }
 
@@ -164,6 +170,21 @@ public class FragmentTask {
         printTask();
     }
 
+    Collection<Integer> taskIds(){
+        ArrayList<Integer> ids = new ArrayList<>(mFragmentTasks.size());
+        int size = mFragmentTasks.size();
+        for(int i = 0; i < size; i ++){
+            ids.add(mFragmentTasks.keyAt(i));
+        }
+
+        return ids;
+    }
+
+    ArrayList<FnFragment> getFragments(int taskId){
+        return mFragmentTasks.get(taskId);
+    }
+
+
     private FragmentTransaction beginTransaction() {
         return fragmentNav.getActivity().getSupportFragmentManager().beginTransaction();
     }
@@ -176,12 +197,28 @@ public class FragmentTask {
         }
     }
 
-    private void bringViewToFront(FnFragment fragment) {
-        ViewGroup viewGroup = (ViewGroup) fragmentNav.getActivity().findViewById(fragmentNav.getViewContainerId());
-        if (fragment.getView() != null && viewGroup != null && viewGroup.getChildAt(viewGroup.getChildCount() - 1) != fragment.getView()) {
-            viewGroup.removeView(fragment.getView());
-            viewGroup.addView(fragment.getView());
+    private void bringFragmentToFrontInFragmantManager(Fragment fragment){
+        try {
+            Field field = fragment.getFragmentManager().getClass().getDeclaredField("mAdded");
+            field.setAccessible(true);
+            List<Fragment> fragments = (List<Fragment>) field.get(fragment.getFragmentManager());
+            fragments.remove(fragment);
+            fragments.add(fragment);
+        } catch (Exception e){
+            Trace.p(getClass(), "Reorder fragment in fragmentManager fail:%s", e);
         }
+    }
+
+    private void bringViewToFront(FnFragment fragment) {
+        final View view = fragment.getView();
+        if(view != null){
+            ViewGroup viewGroup = (ViewGroup) view.getParent();
+            if (viewGroup != null && viewGroup.getChildAt(viewGroup.getChildCount() - 1) != fragment.getView()) {
+                viewGroup.removeView(view);
+                viewGroup.addView(view);
+            }
+        }
+
     }
 
 
@@ -189,15 +226,11 @@ public class FragmentTask {
         mCurrFragment = fragment;
     }
 
-    public boolean hasCurrentFragment() {
-        return mCurrFragment != null && mCurrFragment.isAdded();
-    }
-
     public FnFragment getCurrentFragment() {
         return mCurrFragment;
     }
 
-    public int getTaskIndexByFnId(String fragmentId) {
+    private int getTaskIndexByFnId(String fragmentId) {
         for (int i = 0; i < mFragmentTasks.size(); i++) {
             List<FnFragment> fragments = mFragmentTasks.valueAt(i);
             for (FnFragment fragment : fragments) {
@@ -253,7 +286,7 @@ public class FragmentTask {
         return fragments;
     }
 
-    public List<FnFragment> getTailTask(int offset) {
+    private List<FnFragment> getTailTask(int offset) {
         return (mFragmentTasks.size() - offset) == 0 ? null : mFragmentTasks.valueAt(mFragmentTasks.size() - 1 - offset);
     }
 
@@ -287,35 +320,6 @@ public class FragmentTask {
         }
 
         return null;
-    }
-
-    public FnFragment removeFramentInTask(int taskId, Class cls) {
-        if (taskId > mFragmentTasks.size()) {
-            return null;
-        }
-
-        List<FnFragment> task = mFragmentTasks.get(taskId);
-        int i = task.size();
-        FnFragment result = null;
-        while ((--i) >= 0) {
-            FnFragment fragment = task.get(i);
-            if (fragment != null && fragment.getClass() == cls) {
-                result = fragment;
-                break;
-            }
-
-        }
-
-        task.remove(result);
-        return result;
-    }
-
-    public void removeFramentInTask(int taskId, FnFragment fragment) {
-        if (taskId > mFragmentTasks.size()) {
-            return;
-        }
-        List<FnFragment> task = mFragmentTasks.get(taskId);
-        task.remove(fragment);
     }
 
     public int getTaskId(FnFragment fragment, int defVal) {
@@ -403,11 +407,11 @@ public class FragmentTask {
 
     private String taskLog() {
         final SparseArray<ArrayList<FnFragment>> mFragmentTasks = actual();
-        StringBuilder sb = new StringBuilder("\n** Start **");
-        sb.append("\nCurrent [").append((getCurrentFragment() == null ? "NULL" : getCurrentFragment().getClass().getSimpleName())).append("]\n");
+        StringBuilder sb = new StringBuilder("\n** Task **");
+        sb.append("\n   Current:").append((getCurrentFragment() == null ? "NULL" : getCurrentFragment().getClass().getSimpleName())).append("\n");
         for (int i = 0; i < mFragmentTasks.size(); i++) {
             List<FnFragment> task = mFragmentTasks.valueAt(i);
-            sb.append("").append(i).append("#").append(mFragmentTasks.keyAt(i)).append("=>[");
+            sb.append("   ").append(i).append("#").append(mFragmentTasks.keyAt(i)).append("=>[");
             if (task.size() == 0) {
                 sb.append("######Task Is Empty######");
             }
@@ -417,7 +421,7 @@ public class FragmentTask {
             }
             sb.append("]\n");
         }
-        sb.append("** End **\n");
+        sb.append("** Task **\n");
 
         return sb.toString();
     }

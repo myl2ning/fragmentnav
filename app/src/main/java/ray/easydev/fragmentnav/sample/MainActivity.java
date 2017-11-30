@@ -43,7 +43,7 @@ public class MainActivity extends FragmentActivity implements FnActivity {
 
     @Override
     public void onBackPressed() {
-        getFragmentNav().finish(getFragmentNav().getFragmentTask().getCurrentFragment());
+        FragmentNavHelper.onBackPressed(getFragmentNav());
     }
 
     @NonNull

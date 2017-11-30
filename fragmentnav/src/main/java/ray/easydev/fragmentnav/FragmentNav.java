@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 
+import java.util.Collection;
+
 /**
  * Created by Ray on 2017/11/23.
  */
@@ -22,9 +24,19 @@ public interface FragmentNav {
 
     void finishTask(int... taskIds);
 
-    int getViewContainerId();
+    FnFragment getCurrentFragment();
 
-    FragmentTask getFragmentTask();
+    <T extends FnFragment> T findFragment(@NonNull String id);
+
+    boolean hasFragment(Class<? extends FnFragment> cls);
+
+    int getTaskId(FnFragment fragment);
+
+    Collection<Integer> taskIds();
+
+    Collection<FnFragment> getFragments(int taskId);
+
+    int fragmentSize();
 
     FragmentActivity getActivity();
 
