@@ -121,8 +121,7 @@ class FragmentTaskManager {
                         fragmentTasks.remove(taskId);
                     }
 
-                    bringFragmentToFrontInFragmantManager(fragment);
-                    bringViewToFront(fragment);
+                    doBring(fragment);
                 }
 
                 case Op.OP_SHOW:
@@ -197,7 +196,13 @@ class FragmentTaskManager {
         }
     }
 
+    private void doBring(Fragment fragment){
+        bringFragmentToFrontInFragmantManager(fragment);
+        bringViewToFront(fragment);
+    }
+
     private void bringFragmentToFrontInFragmantManager(Fragment fragment){
+//        FragmentManagerImpl.moveFragmentToExpectedState
         try {
             Field field = fragment.getFragmentManager().getClass().getDeclaredField("mAdded");
             field.setAccessible(true);
@@ -209,7 +214,7 @@ class FragmentTaskManager {
         }
     }
 
-    private void bringViewToFront(FnFragment fragment) {
+    private void bringViewToFront(Fragment fragment) {
         final View view = fragment.getView();
         if(view != null){
             ViewGroup viewGroup = (ViewGroup) view.getParent();

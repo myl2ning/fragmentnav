@@ -112,4 +112,8 @@ public class FmBase extends FnFragment implements View.OnClickListener {
         return (MainActivity) getActivity();
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }
