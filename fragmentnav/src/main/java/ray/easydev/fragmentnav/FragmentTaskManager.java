@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -169,7 +168,7 @@ class FragmentTaskManager {
         printTask();
     }
 
-    Collection<Integer> taskIds(){
+    List<Integer> taskIds(){
         ArrayList<Integer> ids = new ArrayList<>(mFragmentTasks.size());
         int size = mFragmentTasks.size();
         for(int i = 0; i < size; i ++){

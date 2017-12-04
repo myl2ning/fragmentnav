@@ -24,7 +24,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -167,6 +166,7 @@ class FragmentNavImpl implements FragmentNav {
                 }
             }
         } else {
+            targetFragment.getIntent().setFlags(intent.getFlags());
             targetFragment.onNewIntent(intent);
         }
 
@@ -538,13 +538,13 @@ class FragmentNavImpl implements FragmentNav {
     }
 
     @Override
-    public Collection<Integer> taskIds() {
+    @NonNull public List<Integer> taskIds() {
         return mFragmentTask.taskIds();
     }
 
     @Override
-    public Collection<FnFragment> getFragments(int taskId) {
-        return Collections.unmodifiableCollection(mFragmentTask.getFragments(taskId));
+    @NonNull public List<FnFragment> getFragments(int taskId) {
+        return Collections.unmodifiableList(mFragmentTask.getFragments(taskId));
     }
 
     public static class PendingOps implements Parcelable, Serializable {

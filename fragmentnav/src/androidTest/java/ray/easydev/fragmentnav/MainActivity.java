@@ -1,18 +1,14 @@
-package ray.easydev.fragmentnav.sample;
+package ray.easydev.fragmentnav;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.view.ViewGroup;
 
-import ray.easydev.fragmentnav.FnActivity;
-import ray.easydev.fragmentnav.FragmentIntent;
-import ray.easydev.fragmentnav.FragmentNav;
-import ray.easydev.fragmentnav.FragmentNavHelper;
+import ray.easydev.fragmentnav.fragments.Fm01;
+import ray.easydev.fragmentnav.test.R;
 import ray.easydev.fragmentnav.utils.Trace;
-
 
 /**
  * Created by Ray on 2017/11/21.
@@ -36,10 +32,6 @@ public class MainActivity extends FragmentActivity implements FnActivity {
         }
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-    }
 
     public void printViewInfo(){
         Trace.p(getClass(), rootView.getChildCount());
