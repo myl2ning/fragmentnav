@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 
 import java.io.Serializable;
 
@@ -18,10 +17,14 @@ public class FragmentIntent implements Parcelable {
     public final static int FLAG_NO_EXIT_ANIMATION = Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
     public final static int FLAG_NO_ANIMATION = Intent.FLAG_ACTIVITY_NO_ANIMATION;
     public final static int FLAG_NEW_TASK = Intent.FLAG_ACTIVITY_NEW_TASK;
-    public final static int FLAG_NO_HISTORY = Intent.FLAG_ACTIVITY_NO_HISTORY;
-
     public final static int FLAG_BROUGHT_TO_FRONT = Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT;
-    public final static int FLAG_SINGLE_TOP = Intent.FLAG_ACTIVITY_SINGLE_TOP;
+
+    /**
+     * android.support.v4.FragmentManager will remove the fragment's view immediately after start the remove animation, this will cause the removed view be rendered in the top window,
+     * that's not what we expect...
+     */
+    //TODO Gonna figure out a way to do this
+    final static int FLAG_NO_HISTORY = Intent.FLAG_ACTIVITY_NO_HISTORY;
 
     private int flags = 0;
 
@@ -29,15 +32,15 @@ public class FragmentIntent implements Parcelable {
     public int inAnim = R.anim.page_in, outAnim = R.anim.page_out, showAnim = R.anim.page_show, hideAnim = R.anim.page_hide;
     private String tag;
 
-    private Class targetCls;
+    private Class<? extends FnFragment> targetCls;
     private Bundle extras;
 
-    public FragmentIntent(@NonNull Class<? extends Fragment> target, Bundle extras){
+    public FragmentIntent(@NonNull Class<? extends FnFragment> target, Bundle extras){
         this.targetCls = target;
         this.extras = extras != null ? new Bundle() : extras;
     }
 
-    public FragmentIntent(@NonNull Class<? extends Fragment> target){
+    public FragmentIntent(@NonNull Class<? extends FnFragment> target){
         this(target, new Bundle());
     }
 
@@ -68,7 +71,7 @@ public class FragmentIntent implements Parcelable {
         return invokerId == null ? "" : invokerId;
     }
 
-    public Class getTargetCls() {
+    public @NonNull Class<? extends FnFragment> getTargetCls() {
         return targetCls;
     }
 

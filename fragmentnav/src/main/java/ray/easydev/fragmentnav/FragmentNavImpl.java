@@ -24,6 +24,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,18 +48,16 @@ class FragmentNavImpl implements FragmentNav {
     private ArrayList<PendingOps> mPendingOps = new ArrayList<>();
     private ArrayList<Runnable> mPendingCalls = new ArrayList<>();
 
-    private FragmentTaskManager mFragmentTask;
+    boolean mIsActivitySavedInstanceState, mIsRestoring;
 
-    private boolean mIsActivitySavedInstanceState, mIsRestoring;
+    FragmentTaskManager mFragmentTask;
 
-    int id;
     FragmentNavImpl(@NonNull FragmentActivity activity, int containerViewID, @Nullable Bundle savedInstanceState) {
         activity.getApplication().registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
 
         mIsRestoring = savedInstanceState != null;
         mFragmentTask = new FragmentTaskManager(this, containerViewID);
         mActivity = activity;
-        id = containerViewID;
         initHandler(activity);
     }
 
@@ -93,9 +92,8 @@ class FragmentNavImpl implements FragmentNav {
         return mFragmentTask.hasFragment(cls);
     }
 
-
-    public @NonNull FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent... intents){
-        return innerStartFragment(invoker, requestCode, intents);
+    public @NonNull FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent intent){
+        return innerStartFragment(invoker, requestCode, intent);
     }
 
     public @NonNull FnFragment startFragment(@Nullable final FnFragment invoker, @NonNull final FragmentIntent... intents) {
@@ -129,10 +127,6 @@ class FragmentNavImpl implements FragmentNav {
 
     private @NonNull FnFragment startSingleFragment(FnFragment invoker, FragmentIntent intent, List<Op> ops) {
         Class cls = intent.getTargetCls();
-        if (cls == null || !FnFragment.class.isAssignableFrom(cls)) {
-            throw new RuntimeException("The fragment cls is null or invalid:" + cls);
-        }
-
         if (invoker == null) {
             intent.addFlag(FragmentIntent.FLAG_NEW_TASK);
         } else {
@@ -159,11 +153,11 @@ class FragmentNavImpl implements FragmentNav {
             add(ops, targetFragment);
 
             if(invoker != null){
-                if (hasBit(myFlag, FragmentIntent.FLAG_NO_HISTORY)) {
-                    remove(ops, invoker).setAnim(0, invoker.getIntent().hideAnim);
-                } else {
-                    hide(ops, invoker);
-                }
+//                if (hasBit(myFlag, FragmentIntent.FLAG_NO_HISTORY)) {
+//                    remove(ops, invoker).setAnim(0, invoker.getIntent().hideAnim);
+//                } else {
+                hide(ops, invoker);
+//                }
             }
         } else {
             targetFragment.getIntent().setFlags(intent.getFlags());
@@ -226,8 +220,7 @@ class FragmentNavImpl implements FragmentNav {
                 //存在至少2个Task队列
                 //即将显示的task的index
                 int showTaskIndex = 0;
-
-                int showingTaskId = getTaskId(getCurrentFragment());
+                final int showingTaskId = getTaskId(getCurrentFragment());
                 int showingTaskIndex = fragmentTasks.indexOfKey(showingTaskId);
                 int removeTaskIndex = fragmentTasks.indexOfKey(removeTaskId);
 
@@ -255,14 +248,62 @@ class FragmentNavImpl implements FragmentNav {
         }
 
         printOps(ops);
-        if (tryCommit(ops)) {
-            setFragmentResult(tail, vFragment);
+        tryCommit(ops);
+//        if (tryCommit(ops)) {
+//            setFragmentResult(tail, vFragment);
+//
+//            if (fragmentTasks.size() == 0) {
+//                //必须放在commit之后
+//                finishActivity();
+//            }
+//        }
+    }
 
-            if (fragmentTasks.size() == 0) {
-                //必须放在commit之后
-                finishActivity();
+    public void finishTasks(final int... removeTaskIds) {
+        Arrays.sort(removeTaskIds);
+
+        List<Integer> ids = taskIds();
+        ArrayList<Op> ops = new ArrayList<>();
+        boolean hasRemoveAnim = false, includeCurrent = false;
+        final int currentId = getTaskId(getCurrentFragment());
+
+        for (Integer id : removeTaskIds) {
+            List<FnFragment> fragments = getFragments(id);
+            for (FnFragment fragment : fragments) {
+                Op op = new Op(Op.OP_REMOVE, fragment);
+                if(!hasRemoveAnim && op.exitAnim != 0){
+                    hasRemoveAnim = true;
+                }
+
+                ops.add(op);
+            }
+
+            ids.remove(id);
+            if(currentId == id){
+                includeCurrent = true;
             }
         }
+
+        FnFragment showFragment = null;
+        if(includeCurrent && !ids.isEmpty()){
+            List<FnFragment> fragments = null;
+            for(int index = ids.size() - 1; index >= 0 && ((fragments == null || fragments.isEmpty())); index -- ){
+                fragments = getFragments(ids.get(index));
+            }
+
+            showFragment = fragments != null && !fragments.isEmpty() ? fragments.get(fragments.size() - 1) : null;
+        }
+
+        if(showFragment != null){
+            Op opShow = new Op(Op.OP_SHOW, showFragment);
+            if(!hasRemoveAnim){
+                opShow.clearAnim();
+            }
+            ops.add(opShow);
+        }
+
+        printOps(ops);
+        tryCommit(ops);
     }
 
     public void finishTask(final FnFragment fragment) {
@@ -286,7 +327,7 @@ class FragmentNavImpl implements FragmentNav {
 
     public void finish(final FnFragment fragment) {
         if (mIsRestoring) {
-            //TODO ugly...
+            //TODO Ugly but simple, will merge finish action into ops in the future...
             addPendingCall(new Runnable() {
                 @Override
                 public void run() {
@@ -360,17 +401,17 @@ class FragmentNavImpl implements FragmentNav {
         }
 
         printOps(ops);
-        if (tryCommit(ops)) {
-            if (empty()) {
-                finishActivity();
-            } else {
-                setFragmentResult(fragment, vFragment);
-            }
-        }
+        tryCommit(ops);
+//        if (tryCommit(ops)) {
+//            setFragmentResult(fragment, vFragment);
+//            if (mFragmentTask.isEmpty()) {
+//                finishActivity();
+//            }
+//        }
     }
 
 
-    private void finishActivity() {
+    void finishActivity() {
         mActivity.finish();
     }
 
@@ -442,15 +483,6 @@ class FragmentNavImpl implements FragmentNav {
         }
     }
 
-    private void setFragmentResult(FnFragment removed, FnFragment willShow) {
-        if ((removed != null) && (willShow != null) && removed.getResultCode() != null) {
-            RequestCodeInfo requestCodeInfo = RequestCodeInfo.readFrom(removed.getArguments());
-            if (requestCodeInfo != null && requestCodeInfo.getInvokerId().equals(willShow.getFnId())) {
-                willShow.onFragmentResult(requestCodeInfo.requestCode, removed.getResultCode(), removed.getResultData());
-            }
-        }
-    }
-
     private void printOps(List<Op> ops) {
         StringBuilder sb = new StringBuilder("\n** Ops **");
         for (Op op : ops) {
@@ -468,7 +500,6 @@ class FragmentNavImpl implements FragmentNav {
 
         int i = 0;
         for (PendingOps pendingOp : pendingOps) {
-            System.out.println("PendingOps" + (i++) + ":");
             if (pendingOp.ops != null) {
                 printOps(pendingOp.ops);
             }
@@ -476,7 +507,7 @@ class FragmentNavImpl implements FragmentNav {
     }
 
 
-    public void onActivityResumed() {
+    void onActivityResumed() {
         mIsRestoring = mIsActivitySavedInstanceState = false;
 
         if (pendingOpsRestoreHelper != null)
@@ -487,10 +518,6 @@ class FragmentNavImpl implements FragmentNav {
 
     public void onBackPressed() {
         finish(getCurrentFragment());
-    }
-
-    private boolean empty() {
-        return mFragmentTask.empty();
     }
 
     public int fragmentSize() {
@@ -522,6 +549,7 @@ class FragmentNavImpl implements FragmentNav {
             }
 
             mPendingOps.clear();
+
         }
     }
 
@@ -547,7 +575,7 @@ class FragmentNavImpl implements FragmentNav {
         return Collections.unmodifiableList(mFragmentTask.getFragments(taskId));
     }
 
-    public static class PendingOps implements Parcelable, Serializable {
+    static class PendingOps implements Serializable {
         ArrayList<Op> ops;
 
         PendingOps(ArrayList<Op> ops) {
@@ -563,36 +591,9 @@ class FragmentNavImpl implements FragmentNav {
             }
         }
 
-        PendingOps(Parcel in) {
-            ops = in.createTypedArrayList(Op.CREATOR);
-        }
-
-        public static final Creator<PendingOps> CREATOR = new Creator<PendingOps>() {
-            @Override
-            public PendingOps createFromParcel(Parcel in) {
-                return new PendingOps(in);
-            }
-
-            @Override
-            public PendingOps[] newArray(int size) {
-                return new PendingOps[size];
-            }
-        };
-
-        public void commit(FragmentNavImpl fragmentNavV3) {
+        void commit(FragmentNavImpl fragmentNavV3) {
             fragmentNavV3.mFragmentTask.commit(ops);
         }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            dest.writeTypedList(ops);
-        }
-
     }
 
     static class IdGenerator {
@@ -661,6 +662,12 @@ class FragmentNavImpl implements FragmentNav {
             mIsRestoring = false;
 
         }
+    }
+
+    @NonNull
+    @Override
+    public Handler getHandler() {
+        return mHandler;
     }
 
     private Application.ActivityLifecycleCallbacks activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {

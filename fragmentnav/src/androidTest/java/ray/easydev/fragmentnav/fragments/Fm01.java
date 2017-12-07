@@ -5,7 +5,6 @@ package ray.easydev.fragmentnav.fragments;
  */
 
 public class Fm01 extends FmBase {
-
 }
 
 

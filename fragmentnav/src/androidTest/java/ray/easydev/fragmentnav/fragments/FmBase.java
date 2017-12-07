@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -25,12 +26,25 @@ import ray.easydev.fragmentnav.utils.Trace;
 
 public class FmBase extends FnFragment implements View.OnClickListener {
 
+    public final static FragmentResult EMPTY_RESULT = new FragmentResult();
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        if(savedInstanceState != null){
 //            XTrace.p(getClass(), "FragmentSize:%s", getFragmentNav().fragmentSize());
 //        }
+    }
+
+    private FragmentResult fragmentResult;
+
+    @Override
+    public void onFragmentResult(int requestCode, int resultCode, Object data) {
+        super.onFragmentResult(requestCode, resultCode, data);
+        fragmentResult = new FragmentResult(requestCode, resultCode, data);
+    }
+
+    public @NonNull FragmentResult getFragmentResult() {
+        return fragmentResult == null ? EMPTY_RESULT  : fragmentResult;
     }
 
     @Override
@@ -117,5 +131,29 @@ public class FmBase extends FnFragment implements View.OnClickListener {
     @Override
     public String toString() {
         return getClass().getSimpleName();
+    }
+
+    public static class FragmentResult {
+        public int requestCode, resultCode;
+        public Object result;
+
+        public FragmentResult(int requestCode, int resultCode, Object result){
+            this.requestCode = requestCode;
+            this.resultCode = resultCode;
+            this.result = result;
+        }
+
+        FragmentResult(){}
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof FragmentResult){
+                FragmentResult out = (FragmentResult) obj;
+
+                return requestCode == out.requestCode && resultCode == out.resultCode
+                        && result == out.result;
+            }
+            return super.equals(obj);
+        }
     }
 }

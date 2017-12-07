@@ -15,6 +15,9 @@ import ray.easydev.fragmentnav.utils.Trace;
  */
 
 public class MainActivity extends FragmentActivity implements FnActivity {
+    static {
+        Trace.setLogLevel(false, 10);
+    }
     FragmentNav fragmentNav;
 
     public ViewGroup rootView;
@@ -41,6 +44,12 @@ public class MainActivity extends FragmentActivity implements FnActivity {
     @Override
     public void onBackPressed() {
         FragmentNavHelper.onBackPressed(getFragmentNav());
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        System.out.println("onSaveInstanceState");
     }
 
     @NonNull

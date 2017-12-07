@@ -125,11 +125,6 @@ public class FmEnter extends FnFragment {
         getFragmentNav().startFragment(this, intent02, intent11, intent12, intent21);
     }
 
-    private void testStartForResult(){
-        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-        FragmentIntent intent13 = new FragmentIntent(Fm13.class);
-        getFragmentNav().startFragmentForResult(this, 1, intent11, intent13);
-    }
 
     private void testStartSingle(){
         startFragment(new FragmentIntent(Fm02.class));

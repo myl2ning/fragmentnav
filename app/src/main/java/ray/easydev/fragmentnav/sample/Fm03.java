@@ -1,5 +1,7 @@
 package ray.easydev.fragmentnav.sample;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.view.View;
 
@@ -14,6 +16,12 @@ import ray.easydev.fragmentnav.utils.Trace;
  */
 
 public class Fm03 extends FmBase {
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+    }
+
     @Override
     public void onClick(View v) {
         super.onClick(v);

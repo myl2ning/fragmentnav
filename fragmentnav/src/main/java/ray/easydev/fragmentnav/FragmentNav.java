@@ -1,6 +1,7 @@
 package ray.easydev.fragmentnav;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public interface FragmentNav {
     @NonNull
-    FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent... intents);
+    FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent intent);
 
     @NonNull
     FnFragment startFragment(@Nullable FnFragment invoker, @NonNull FragmentIntent... intents);
@@ -23,6 +24,8 @@ public interface FragmentNav {
     void finishTask(FnFragment fragment);
 
     void finishTask(int... taskIds);
+
+    void finishTasks(int... taskIds);
 
     FnFragment getCurrentFragment();
 
@@ -45,4 +48,6 @@ public interface FragmentNav {
     void saveState(Bundle bundle);
 
     void restoreState(Bundle bundle);
+
+    @NonNull Handler getHandler();
 }

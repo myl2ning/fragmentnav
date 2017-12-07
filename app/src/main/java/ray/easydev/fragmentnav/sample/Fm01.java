@@ -1,5 +1,8 @@
 package ray.easydev.fragmentnav.sample;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.SparseArray;
 import android.view.View;
@@ -65,7 +68,48 @@ public class Fm01 extends FmBase {
     @Override
     public void onClick(View v) {
         super.onClick(v);
-        startFragment(new FragmentIntent(Fm02.class));
+//        testFinishNonCurrentTask();
+//        moveToBackAndRestore();
+        testBatchStart();
+    }
+
+    private void testStartWithNoHistory(){
+//        startFragment(new FragmentIntent(Fm02.class).addFlag(FragmentIntent.FLAG_NO_HISTORY));
+    }
+
+    private void moveToBackAndRestore(){
+        final Activity activity = getActivity();
+        activity.moveTaskToBack(true);
+        getView().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                restoreApp(activity);
+            }
+        }, 2000);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    private static void restoreApp(Activity activity) {
+        Intent i = new Intent(activity, activity.getClass());
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        i.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+        i.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+        i.addCategory(Intent.CATEGORY_LAUNCHER);
+        activity.startActivity(i);
+    }
+
+    private void testFinishNonCurrentTask(){
+        FragmentIntent intent02 = new FragmentIntent(Fm02.class);
+        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent12 = new FragmentIntent(Fm12.class);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent22 = new FragmentIntent(Fm22.class);
+        getFragmentNav().startFragment(this, intent02, intent11, intent12, intent21, intent22);
     }
 
     private void testFinishTask(){
@@ -80,14 +124,9 @@ public class Fm01 extends FmBase {
         FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
         FragmentIntent intent12 = new FragmentIntent(Fm12.class);
         FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent22 = new FragmentIntent(Fm22.class);
 
-        getFragmentNav().startFragment(this, intent02, intent11, intent12, intent21);
-    }
-
-    private void testStartForResult(){
-        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-        FragmentIntent intent13 = new FragmentIntent(Fm13.class);
-        getFragmentNav().startFragmentForResult(this, 1, intent11, intent13);
+        getFragmentNav().startFragment(this, intent02, intent11, intent12, intent21, intent22);
     }
 
     private void testStartSingle(){

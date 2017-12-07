@@ -10,7 +10,5 @@ public class Fm13 extends FmBase {
     @Override
     public void onClick(View v) {
         super.onClick(v);
-        setResult(123, null);
-        finishTask();
     }
 }

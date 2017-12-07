@@ -5,12 +5,34 @@
     android:background="#ffffff"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tv_log"
+    <LinearLayout
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:textSize="24dp" />
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#ff9988" />
+
+        <TextView
+            android:id="@+id/tv_log"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textSize="24dp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#1c6780" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/test_btn"

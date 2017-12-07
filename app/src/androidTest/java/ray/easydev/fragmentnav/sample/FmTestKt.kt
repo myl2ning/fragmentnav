@@ -18,7 +18,7 @@ class FmTestKt : BaseFmTest(){
 
     @Test
     fun testSingleStart(){
-        startFragment(FragmentIntent(Fm11::class.java))
+        startFragmentKt(FragmentIntent(Fm11::class.java))
         waitForAnimEnd()
 
         checkState(1, Fm11::class.java)
@@ -30,7 +30,7 @@ class FmTestKt : BaseFmTest(){
         val intent11 = FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
         val intent12 = FragmentIntent(Fm12::class.java)
         val intent21 = FragmentIntent(Fm21::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
-        startFragment(intent02, intent11, intent12, intent21)
+        startFragmentKt(intent02, intent11, intent12, intent21)
         waitForAnimEnd()
 
         checkState(3, Fm21::class.java)
@@ -41,15 +41,15 @@ class FmTestKt : BaseFmTest(){
         val intent02 = FragmentIntent(Fm02::class.java)
         val intent11 = FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
         val intent12 = FragmentIntent(Fm12::class.java)
-        startFragment(intent02, intent11, intent12)
+        startFragmentKt(intent02, intent11, intent12)
         waitForAnimEnd()
         checkState(2, Fm12::class.java)
 
-        finish()
+        finishKt()
         waitForAnimEnd()
         checkState(2, Fm11::class.java)
 
-        finish()
+        finishKt()
         waitForAnimEnd()
         checkState(1, Fm02::class.java)
     }
@@ -61,15 +61,15 @@ class FmTestKt : BaseFmTest(){
 
     @Test
     fun testBringToFront(){
-        val fm = startFragment(FragmentIntent(ray.easydev.fragmentnav.fragments.Fm02::class.java))
+        val fm = startFragmentKt(FragmentIntent(ray.easydev.fragmentnav.fragments.Fm02::class.java))
         waitActionPost()
 
         val intent11 = FragmentIntent(ray.easydev.fragmentnav.fragments.Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
         val intent12 = FragmentIntent(ray.easydev.fragmentnav.fragments.Fm12::class.java)
-        startFragment(intent11, intent12)
+        startFragmentKt(intent11, intent12)
         waitActionPost()
 
-        val fm1 = startFragment(FragmentIntent(ray.easydev.fragmentnav.fragments.Fm02::class.java).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT))
+        val fm1 = startFragmentKt(FragmentIntent(ray.easydev.fragmentnav.fragments.Fm02::class.java).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT))
         waitActionPost()
         checkState(2, ray.easydev.fragmentnav.fragments.Fm02::class.java)
         Assert.assertTrue(fm == fm1)

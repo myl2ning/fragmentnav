@@ -34,6 +34,7 @@ public class MainActivity extends FragmentActivity implements FnActivity {
         if(savedInstanceState == null){
             fragmentNav.startFragment(null, new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NO_ENTER_ANIMATION));
         }
+
     }
 
     @Override
@@ -49,6 +50,15 @@ public class MainActivity extends FragmentActivity implements FnActivity {
     @Override
     public void onBackPressed() {
         FragmentNavHelper.onBackPressed(getFragmentNav());
+    }
+
+    public void showViewOrder(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < rootView.getChildCount(); i ++){
+            sb.append(rootView.getChildAt(i).getTag()).append(", ");
+        }
+
+        Trace.p(getClass(), sb.toString());
     }
 
     @NonNull

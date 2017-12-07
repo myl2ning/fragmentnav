@@ -1,5 +1,6 @@
 package ray.easydev.fragmentnav
 
+import android.app.Instrumentation
 import android.content.Context
 import android.support.test.InstrumentationRegistry
 import android.support.test.rule.ActivityTestRule
@@ -38,25 +39,39 @@ open class BaseFmTest {
     lateinit var sysFragments: SysFragments
         internal set
 
+    lateinit var fragmentNav: FragmentNav
+
+    lateinit var instrumentation : Instrumentation
+
     @Before
     fun setup() {
         context = InstrumentationRegistry.getTargetContext()
+        instrumentation = InstrumentationRegistry.getInstrumentation()
         activity = mActivityRule.activity
         fragmentManager = activity.supportFragmentManager
 
-        fnFragments = FnFragments((activity as FnActivity).fragmentNav)
+        fragmentNav = ((activity as FnActivity).fragmentNav)
+        fnFragments = FnFragments(fragmentNav)
         sysFragments = SysFragments(fragmentManager)
     }
 
-    fun startFragment(vararg intents: FragmentIntent): FnFragment {
-        return fnFragments.currentFragment.startFragment(*intents)
+    fun<T : FnFragment> current() : T {
+        return fragmentNav.currentFragment as T
     }
 
-    fun finish(){
+    fun<T : FnFragment> startFragmentForResultKt(reqCode: Int, intent: FragmentIntent): T {
+        return fnFragments.currentFragment.startFragmentForResult(reqCode, intent) as T
+    }
+
+    fun<T : FnFragment> startFragmentKt(vararg intents: FragmentIntent): T {
+        return fnFragments.currentFragment.startFragment(*intents) as T
+    }
+
+    fun finishKt(){
         fnFragments.currentFragment.finish()
     }
 
-    fun finishTask(){
+    fun finishTaskKt(){
         fnFragments.currentFragment.finishTask()
     }
 
@@ -133,7 +148,7 @@ open class BaseFmTest {
         var visibleCount = 0;
         val sb = StringBuilder()
         sysFragments.fragments.forEach {
-            if(it.isVisible) {
+            if(!it.isHidden) {
                 visibleCount ++
                 sb.append(it.javaClass.simpleName).append(" ")
             }

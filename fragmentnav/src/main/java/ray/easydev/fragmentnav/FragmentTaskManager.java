@@ -2,6 +2,7 @@ package ray.easydev.fragmentnav;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.SparseArray;
@@ -34,16 +35,16 @@ class FragmentTaskManager {
     private final static String _ARG_FRAGMENT_INDEX = "_arg_fragment_index";
 
     private SparseArray<ArrayList<FnFragment>> mFragmentTasks = new SparseArray<>();
-    private FragmentNav fragmentNav;
+    private FragmentNavImpl fragmentNav;
     private FnFragment mCurrFragment;
     private int mContainerViewId;
 
-    FragmentTaskManager(FragmentNav fragmentNav, int containerViewId) {
+    FragmentTaskManager(FragmentNavImpl fragmentNav, int containerViewId) {
         this.fragmentNav = fragmentNav;
         mContainerViewId = containerViewId;
     }
 
-    private SparseArray<ArrayList<FnFragment>> actual(){
+    SparseArray<ArrayList<FnFragment>> actual(){
         return mFragmentTasks;
     }
 
@@ -68,6 +69,7 @@ class FragmentTaskManager {
         final SparseArray<ArrayList<FnFragment>> fragmentTasks = mFragmentTasks;
         final SparseArray<ArrayList<FnFragment>> copy = copy();
 
+        FnFragment lastRemoved = null;
         for (Op op : ops) {
             final FnFragment fragment = op.fragment;
             if (fragment == null) {
@@ -135,7 +137,7 @@ class FragmentTaskManager {
                         fragmentTasks.removeAt(taskIndex);
                         continue;
                     }
-
+                    lastRemoved = fragment;
                     transaction.remove(fragment);
                     task.remove(fragment);
 
@@ -158,14 +160,35 @@ class FragmentTaskManager {
             }
         }
 
+        if(lastRemoved != null) Trace.p(TAG, "Last remove:%s", lastRemoved.getClass().getSimpleName());
         try{
             transaction.commit();
             setCurrentFragment(showFragment);
+            setFragmentResult(lastRemoved, showFragment);
         } catch (Exception e){
+            Trace.p(TAG, e);
             set(copy);
         }
 
+
+        if(isEmpty()){
+            finishActivity();
+        }
         printTask();
+    }
+
+    private void finishActivity() {
+        fragmentNav.getActivity().finish();
+        Trace.p(TAG, "***** finish activity *****");
+    }
+
+    private void setFragmentResult(@Nullable FnFragment from, @Nullable FnFragment receiver){
+        if ((from != null) && (receiver != null) && from.getResultCode() != null) {
+            FragmentNavImpl.RequestCodeInfo requestCodeInfo = FragmentNavImpl.RequestCodeInfo.readFrom(from.getArguments());
+            if (requestCodeInfo != null && requestCodeInfo.getInvokerId().equals(receiver.getFnId())) {
+                receiver.onFragmentResult(requestCodeInfo.requestCode, from.getResultCode(), from.getResultData());
+            }
+        }
     }
 
     List<Integer> taskIds(){
@@ -265,7 +288,7 @@ class FragmentTaskManager {
         return mFragmentTasks.size() == 1 && mFragmentTasks.valueAt(0).size() == 1;
     }
 
-    public boolean empty() {
+    boolean isEmpty() {
         return mFragmentTasks.size() == 0 || (mFragmentTasks.size() == 1 && mFragmentTasks.valueAt(0).size() == 0);
     }
 

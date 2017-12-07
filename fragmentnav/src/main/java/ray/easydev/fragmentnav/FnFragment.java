@@ -1,13 +1,10 @@
 package ray.easydev.fragmentnav;
 
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.View;
-
-import java.io.Serializable;
 
 import ray.easydev.fragmentnav.utils.Trace;
 
@@ -55,8 +52,8 @@ public class FnFragment extends Fragment {
         return getFragmentNav().startFragment(this, intents);
     }
 
-    public @NonNull FnFragment startFragmentForResult(int requestCode, FragmentIntent... intents){
-        return getFragmentNav().startFragmentForResult(this, requestCode, intents);
+    public @NonNull FnFragment startFragmentForResult(int requestCode, FragmentIntent intent){
+        return getFragmentNav().startFragmentForResult(this, requestCode, intent);
     }
 
     public void finish(){
@@ -68,11 +65,11 @@ public class FnFragment extends Fragment {
     }
 
     public void setResult(int resultCode, Object result){
-        if(result instanceof Parcelable){
-
-        } else if (result instanceof Serializable){
-
-        }
+//        if(result instanceof Parcelable){
+//
+//        } else if (result instanceof Serializable){
+//
+//        }
 
         mResultCode = resultCode;
         mResultData = result;

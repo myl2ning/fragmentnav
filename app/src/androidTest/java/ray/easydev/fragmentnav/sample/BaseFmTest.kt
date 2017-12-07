@@ -1,5 +1,6 @@
 package ray.easydev.fragmentnav.sample
 
+import android.app.Instrumentation
 import android.content.Context
 import android.support.test.InstrumentationRegistry
 import android.support.test.rule.ActivityTestRule
@@ -24,7 +25,7 @@ open class BaseFmTest {
 
     @Rule
     @JvmField
-    public var mActivityRule = ActivityTestRule(
+    var mActivityRule = ActivityTestRule(
             MainActivity::class.java)
 
     lateinit var activity: FragmentActivity
@@ -39,8 +40,11 @@ open class BaseFmTest {
     lateinit var sysFragments: SysFragments
         internal set
 
+    lateinit var instrumentation : Instrumentation
+
     @Before
     fun setup() {
+        instrumentation = InstrumentationRegistry.getInstrumentation()
         context = InstrumentationRegistry.getTargetContext()
         activity = mActivityRule.activity
         fragmentManager = activity.supportFragmentManager
