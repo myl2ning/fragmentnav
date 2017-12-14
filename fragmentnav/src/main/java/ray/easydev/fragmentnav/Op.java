@@ -17,8 +17,6 @@ class Op implements Parcelable, Serializable {
     final static int OP_REMOVE = 2;
     final static int OP_SHOW = 3;
     final static int OP_HIDE = 4;
-    final static int OP_ATTACH = 5;
-    final static int OP_DETACH = 6;
 
     final static int OP_BRING_TO_FRONT = 7;
 
@@ -27,6 +25,10 @@ class Op implements Parcelable, Serializable {
     int op;
     int enterAnim, exitAnim;
     String fragmentId;
+
+    Op(){
+
+    }
 
     Op(int op, FnFragment fragment) {
         this.op = op;
@@ -62,23 +64,23 @@ class Op implements Parcelable, Serializable {
 
             switch (op) {
                 case OP_ADD:
-                    setAnim(hasEnterAnim ? intent.inAnim : 0, 0);
+                    setAnim(hasEnterAnim ? intent.getInAnim() : 0, 0);
                     break;
                 case OP_REMOVE:
                     if (fragment.isVisible() && hasExitAnim) {
-                        setAnim(0, intent.outAnim);
+                        setAnim(0, intent.getOutAnim());
                     }
                     break;
                 case OP_SHOW:
-                    setAnim(intent.showAnim, 0);
+                    setAnim(intent.getShowAnim(), 0);
                     break;
                 case OP_HIDE:
                     if (fragment.isVisible()) {
-                        setAnim(0, intent.hideAnim);
+                        setAnim(0, intent.getHideAnim());
                     }
                     break;
                 case OP_BRING_TO_FRONT:
-                    setAnim(intent.inAnim, 0);
+                    setAnim(intent.getInAnim(), 0);
                     break;
             }
         }
@@ -112,12 +114,6 @@ class Op implements Parcelable, Serializable {
                 break;
             case OP_HIDE:
                 sb.append("HIDE");
-                break;
-            case OP_ATTACH:
-                sb.append("ATTACH");
-                break;
-            case OP_DETACH:
-                sb.append("DETACH");
                 break;
             case OP_BRING_TO_FRONT:
                 sb.append("BRING_TO_FRONT");

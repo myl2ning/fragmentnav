@@ -5,34 +5,26 @@
     android:background="#ffffff"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp"
+    <TextView
+        android:id="@+id/tv_title"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Title"
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:background="#ee000000"
+        android:textColor="#ffffffff"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tv_log"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="#ff9988" />
-
-        <TextView
-            android:id="@+id/tv_log"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center_horizontal"
-            android:textSize="24dp" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="#1c6780" />
-    </LinearLayout>
+        android:textColor="#ffffffff"
+        android:background="#173b74"
+        android:paddingTop="2dp"
+        android:paddingLeft="3dp"
+        android:paddingRight="3dp"
+        android:textSize="16dp" />
 
     <Button
         android:id="@+id/test_btn"
@@ -41,10 +33,10 @@
         android:text="toNext" />
 
     <Button
-        android:id="@+id/test_btn1"
+        android:id="@+id/btn_goback"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="show size" />
+        android:text="Go Back" />
 
     <Button
         android:id="@+id/test_btn2"

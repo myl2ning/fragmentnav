@@ -29,7 +29,10 @@ public class FragmentIntent implements Parcelable {
     private int flags = 0;
 
     String invokerId;
-    public int inAnim = R.anim.page_in, outAnim = R.anim.page_out, showAnim = R.anim.page_show, hideAnim = R.anim.page_hide;
+//    public int inAnim = R.anim.page_in, outAnim = R.anim.page_out, showAnim = R.anim.page_show, hideAnim = R.anim.page_hide;
+    public int inAnim, outAnim, showAnim, hideAnim;
+    int tempShowAnim = -1, tempHideAnim = -1;
+
     private String tag;
 
     private Class<? extends FnFragment> targetCls;
@@ -37,21 +40,39 @@ public class FragmentIntent implements Parcelable {
 
     public FragmentIntent(@NonNull Class<? extends FnFragment> target, Bundle extras){
         this.targetCls = target;
-        this.extras = extras != null ? new Bundle() : extras;
+        this.extras = extras == null ? new Bundle() : extras;
+        copyDefault();
     }
 
     public FragmentIntent(@NonNull Class<? extends FnFragment> target){
         this(target, new Bundle());
     }
 
+    private void copyDefault(){
+        if(sDefault != null){
+            inAnim = sDefault.inAnim;
+            outAnim = sDefault.outAnim;
+            showAnim = sDefault.showAnim;
+            hideAnim = sDefault.hideAnim;
+
+            flags = sDefault.flags;
+            extras.putAll(sDefault.extras);
+        }
+    }
+
     protected FragmentIntent(Parcel in) {
+        targetCls = (Class<? extends FnFragment>) in.readSerializable();
         flags = in.readInt();
         inAnim = in.readInt();
         outAnim = in.readInt();
         showAnim = in.readInt();
         hideAnim = in.readInt();
+        tempShowAnim = in.readInt();
+        tempHideAnim = in.readInt();
+
         invokerId = in.readString();
         tag = in.readString();
+        extras = in.readBundle(CREATOR.getClass().getClassLoader());
     }
 
     public static final Creator<FragmentIntent> CREATOR = new Creator<FragmentIntent>() {
@@ -102,8 +123,8 @@ public class FragmentIntent implements Parcelable {
     public FragmentIntent setAnim(int inAnim, int outAnim, int showAnim, int hideAnim){
         this.inAnim = inAnim;
         this.outAnim = outAnim;
-        this.inAnim = inAnim;
-        this.outAnim = outAnim;
+        this.showAnim = showAnim <= 0 ? inAnim : showAnim ;
+        this.hideAnim = hideAnim <= 0 ? outAnim : hideAnim;
         return this;
     }
 
@@ -142,6 +163,34 @@ public class FragmentIntent implements Parcelable {
         return this;
     }
 
+    public int getInAnim(){
+        return inAnim;
+    }
+
+    public int getOutAnim(){
+        return outAnim;
+    }
+
+    public int getShowAnim(){
+        int result = tempShowAnim;
+        if(result < 0){
+            return showAnim;
+        }
+
+        tempShowAnim = -1;
+        return result;
+    }
+
+    public int getHideAnim(){
+        int result = tempHideAnim;
+        if(result < 0){
+            return hideAnim;
+        }
+
+        tempHideAnim = -1;
+        return result;
+    }
+
     public @NonNull
     Bundle getExtras(){
         return extras;
@@ -154,13 +203,18 @@ public class FragmentIntent implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(flags);
+        dest.writeSerializable(targetCls);
+        dest.writeInt(getFlags());
         dest.writeInt(inAnim);
         dest.writeInt(outAnim);
         dest.writeInt(showAnim);
         dest.writeInt(hideAnim);
+        dest.writeInt(tempShowAnim);
+        dest.writeInt(tempHideAnim);
+
         dest.writeString(getInvokerId());
         dest.writeString(getTag());
+        dest.writeBundle(extras);
     }
 
     public void write(Bundle bundle){
@@ -181,5 +235,20 @@ public class FragmentIntent implements Parcelable {
         }
 
         return result;
+    }
+
+    private static FragmentIntent sDefault;
+
+    FragmentIntent(){
+        extras = new Bundle();
+        copyDefault();
+    }
+
+    public static FragmentIntent getDefault(){
+        if(sDefault == null){
+            sDefault = new FragmentIntent();
+        }
+
+        return sDefault;
     }
 }

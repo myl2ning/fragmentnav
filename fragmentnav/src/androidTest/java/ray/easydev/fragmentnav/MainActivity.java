@@ -3,7 +3,6 @@ package ray.easydev.fragmentnav;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
 import android.view.ViewGroup;
 
 import ray.easydev.fragmentnav.fragments.Fm01;
@@ -14,47 +13,33 @@ import ray.easydev.fragmentnav.utils.Trace;
  * Created by Ray on 2017/11/21.
  */
 
-public class MainActivity extends FragmentActivity implements FnActivity {
+public class MainActivity extends FnFragmentActivity implements FnActivity {
     static {
         Trace.setLogLevel(false, 10);
     }
-    FragmentNav fragmentNav;
 
     public ViewGroup rootView;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        fragmentNav = FragmentNavHelper.createBeforeSuperOnCreate(this, R.id.layout_main, savedInstanceState);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        rootView = (ViewGroup) findViewById(R.id.layout_main);
-
-        if(savedInstanceState == null){
-            fragmentNav.startFragment(null, new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NO_ENTER_ANIMATION));
-        }
+        rootView = findViewById(R.id.layout_main);
     }
-
-
-    public void printViewInfo(){
-        Trace.p(getClass(), rootView.getChildCount());
-    }
-
 
     @Override
     public void onBackPressed() {
-        FragmentNavHelper.onBackPressed(getFragmentNav());
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        System.out.println("onSaveInstanceState");
+    public int getFragmentContainerId() {
+        return R.id.layout_main;
     }
 
     @NonNull
     @Override
-    public FragmentNav getFragmentNav() {
-        return fragmentNav;
+    public FragmentIntent[] getStartIntents() {
+        return new FragmentIntent[]{
+                new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NO_ENTER_ANIMATION)
+        };
     }
 }

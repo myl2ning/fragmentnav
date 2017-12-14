@@ -1,4 +1,4 @@
-package ray.easydev.fragmentnav.sample;
+package ray.easydev.fragmentnav.sample.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,6 +20,8 @@ import java.util.List;
 
 import ray.easydev.fragmentnav.FnFragment;
 import ray.easydev.fragmentnav.FragmentIntent;
+import ray.easydev.fragmentnav.sample.Consts;
+import ray.easydev.fragmentnav.sample.R;
 import ray.easydev.fragmentnav.sample.utils.Utils;
 import ray.easydev.fragmentnav.utils.Trace;
 
@@ -28,25 +30,83 @@ import ray.easydev.fragmentnav.utils.Trace;
  * Created by Ray on 2017/11/21.
  */
 
-public class FmEnter extends FnFragment {
+public class FmEnter extends FnFragment implements Consts {
 
     List<Item> items = new ArrayList<>();
     {
-        items.add(new Item("startWithNewTask"));
+        items.add(new Item("startFragmentWithExtras"));
+        items.add(new Item("startWithNewAnim"));
+        items.add(new Item("startInNewTask"));
+        items.add(new Item("testFinishTask"));
         items.add(new Item("batchStart"));
+        items.add(new Item("bringToFront"));
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fm_enter, container, false);
     }
 
     @Override
-    public void onNewIntent(FragmentIntent intent) {
-        super.onNewIntent(intent);
-        getView().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Trace.p(getClass(), "onNewIntent:%s", Utils.joinCollections(getFragmentManager().getFragments(), ", "));
-                printAdded();
-                printActive();
-            }
-        }, 500);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ListView listView = view.findViewById(R.id.listView);
+        listView.setAdapter(new Adapter());
+    }
+
+    public final void startFragmentWithExtras(){
+        FragmentIntent fragmentIntent = new FragmentIntent(Fm01.class).putExtra(KEY_STRING, "StringExtra");
+        startFragment(fragmentIntent);
+    }
+
+    public final void startWithNewAnim(){
+        overrideShowHideAnimThisTime(R.anim.page_insert, R.anim.page_delete);
+        startFragment(new FragmentIntent(Fm01.class).setAnim(R.anim.page_insert, R.anim.page_delete, R.anim.page_show, R.anim.page_hide));
+    }
+
+    public final void startInNewTask(){
+        startFragment(new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK));
+    }
+
+    public final void batchStart(){
+        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent12 = new FragmentIntent(Fm12.class);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+
+        startFragment(intent11, intent12, intent21);
+    }
+
+    public void testFinishTask(){
+        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent12 = new FragmentIntent(Fm12.class);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class);
+        FragmentIntent intent22 = new FragmentIntent(Fm22.class);
+        startFragment(intent11, intent12, intent21, intent22);
+
+        putFragmentIntentsArg(intent22.getExtras(), FmBase.Action.FINISH_MY_TASK);
+    }
+
+
+    public void bringToFront(){
+        FragmentIntent intent01 = new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent23 = new FragmentIntent(Fm23.class);
+        getFragmentNav().startFragment(this, intent01, intent21, intent23);
+
+        putFragmentIntentsArg(intent23.getExtras(), FmBase.Action.START, new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT));
+    }
+
+
+    private void putFragmentIntentsArg(Bundle bundle, FmBase.Action action, FragmentIntent... intents){
+        bundle.putSerializable(KEY_ACTION, action);
+        bundle.putParcelableArray(KEY_ACTION_ARG, intents);
+    }
+
+    @Override
+    public void onFragmentResult(int requestCode, int resultCode, Object data) {
+        super.onFragmentResult(requestCode, resultCode, data);
+        Trace.p(getClass(), "onFragmentResult:%s, %s, %s", requestCode, resultCode, data);
     }
 
 
@@ -78,79 +138,6 @@ public class FmEnter extends FnFragment {
 
         }
     }
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fm_enter, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        ListView listView = view.findViewById(R.id.listView);
-        listView.setAdapter(new Adapter());
-    }
-
-    public final void startWithNewTask(){
-        startFragment(new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK));
-    }
-
-    public final void batchStart(){
-        FragmentIntent intent02 = new FragmentIntent(Fm02.class);
-        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-        FragmentIntent intent12 = new FragmentIntent(Fm12.class);
-        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-
-        startFragment(intent02, intent11, intent12, intent21);
-    }
-
-
-
-
-
-    private void testFinishTask(){
-        FragmentIntent intent02 = new FragmentIntent(Fm02.class);
-        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-        FragmentIntent intent12 = new FragmentIntent(Fm12.class);
-        getFragmentNav().startFragment(this, intent02, intent11, intent12);
-    }
-
-    private void testBatchStart(){
-        FragmentIntent intent02 = new FragmentIntent(Fm02.class);
-        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-        FragmentIntent intent12 = new FragmentIntent(Fm12.class);
-        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-
-        getFragmentNav().startFragment(this, intent02, intent11, intent12, intent21);
-    }
-
-
-    private void testStartSingle(){
-        startFragment(new FragmentIntent(Fm02.class));
-    }
-
-    private void testBatchStart1(){
-        FragmentIntent intent02 = new FragmentIntent(Fm02.class);
-        FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-        FragmentIntent intent12 = new FragmentIntent(Fm12.class);
-        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-
-        getFragmentNav().startFragment(this, intent11, intent12, intent21);
-    }
-
-    private void testBringToFront(){
-        FragmentIntent intent02 = new FragmentIntent(Fm02.class);
-        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
-        FragmentIntent intent23 = new FragmentIntent(Fm23BTF.class);
-        getFragmentNav().startFragment(this, intent02, intent21, intent23);
-    }
-    @Override
-    public void onFragmentResult(int requestCode, int resultCode, Object data) {
-        super.onFragmentResult(requestCode, resultCode, data);
-        Trace.p(getClass(), "onFragmentResult:%s, %s, %s", requestCode, resultCode, data);
-    }
-
 
     class Adapter extends BaseAdapter implements View.OnClickListener {
 

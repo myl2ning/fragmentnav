@@ -14,7 +14,6 @@ import org.junit.Before
 import org.junit.Rule
 import ray.easydev.fragmentnav.test.R
 import java.lang.StringBuilder
-import java.util.*
 
 /**
  * Created by Ray on 2017/12/1.
@@ -75,6 +74,10 @@ open class BaseFmTest {
         fnFragments.currentFragment.finishTask()
     }
 
+    fun finishTasksKt(vararg taskIds : Int){
+        fragmentNav.finishTasks(*taskIds)
+    }
+
     class FnFragments(var fragmentNav: FragmentNav) {
 
         val currentFragment: FnFragment
@@ -109,6 +112,7 @@ open class BaseFmTest {
 
         val fragments: List<Fragment>
             get() = fragmentManager.fragments
+
     }
 
     internal fun checkOrder() {
@@ -158,10 +162,13 @@ open class BaseFmTest {
         Assert.assertTrue((sysFragments.currentFragment::class.java == cls))
     }
 
-    fun checkState(taskSize: Int, currFragment: Class<out Fragment>) {
+    fun checkState(taskSize: Int, currFragment: Class<out Fragment>, fragmentsSize: Int = -1) {
         checkTask(taskSize)
         checkCurrent(currFragment)
         checkOrder()
+        if(fragmentsSize >= 0){
+            Assert.assertTrue(sysFragments.fragments.size == fragmentsSize)
+        }
     }
 
     fun checkTopView(view: View){
@@ -170,7 +177,9 @@ open class BaseFmTest {
     }
 
     companion object {
-        internal val TAG: Class<*> = BaseFmTest::class.java
+        init {
+            FragmentIntent.getDefault().setAnim(R.anim.page_in, R.anim.page_out, R.anim.page_show, R.anim.page_hide)
+        }
 
         fun message(format: String, vararg args: Any): String {
             return String.format(format, *args)

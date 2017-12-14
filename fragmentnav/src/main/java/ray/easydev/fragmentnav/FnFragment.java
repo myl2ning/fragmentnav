@@ -17,7 +17,6 @@ public class FnFragment extends Fragment {
 
     private final static String _ARG_FRAGMENT_ID = FragmentNavImpl.IdGenerator.fromClass(FnFragment.class) + " fnId";
 
-
     private FragmentIntent mIntent;
     private Integer mResultCode = null;
     private Object mResultData;
@@ -107,6 +106,12 @@ public class FnFragment extends Fragment {
      */
     public FnFragment setFinishAnim(int anim){
         getIntent().outAnim = anim;
+        return this;
+    }
+
+    public FnFragment overrideShowHideAnimThisTime(int showAnim, int hideAnim){
+        getIntent().tempShowAnim = showAnim;
+        getIntent().tempHideAnim = hideAnim;
         return this;
     }
 

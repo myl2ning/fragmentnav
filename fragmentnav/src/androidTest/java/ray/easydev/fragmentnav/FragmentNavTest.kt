@@ -1,6 +1,7 @@
 package ray.easydev.fragmentnav
 
 import android.os.Bundle
+import android.os.Parcel
 import android.support.test.filters.LargeTest
 import android.support.test.runner.AndroidJUnit4
 import org.junit.Assert
@@ -24,6 +25,16 @@ class FnTest : BaseFmTest() {
 
         checkState(1, Fm11::class.java)
     }
+
+    @Test
+    fun testSingleStartAndFinish(){
+        waitActionPost()
+        finishKt().run {
+            waitActionPost()
+            checkActivityDestroyed()
+        }
+    }
+
 
     @Test
     fun testBatchStart() {
@@ -60,8 +71,17 @@ class FnTest : BaseFmTest() {
         checkState(1, Fm02::class.java)
     }
 
+    /**
+     * ```java
+     * action:
+     *      [task0]:Fm01, Fm02
+     *      [task1]:Fm11, Fm12 -->remove
+     * expect:
+     *      [task0]:Fm01, Fm02
+     *```
+     */
     @Test
-    fun testFinishTask() {
+    fun testFinishCurrentTask() {
         startFragmentKt<Fm12> (
                 FragmentIntent(Fm02::class.java),
                 FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
@@ -73,34 +93,197 @@ class FnTest : BaseFmTest() {
         checkState(1, Fm02::class.java)
     }
 
+    /**
+     *```java
+     * action:
+     *      [task0]:Fm01, Fm02 -->remove
+     *      [task1]:Fm11, Fm12
+     * expect:
+     *      [task1]:Fm11, Fm12
+     *```
+     *
+     */
     @Test
-    fun testBringNotCurrentToFront() {
-        val fm = startFragmentKt<Fm02>(FragmentIntent(Fm02::class.java)).apply { waitActionPost() }
-
+    fun testFinishNotCurrentTask(){
         startFragmentKt<Fm12>(
+                FragmentIntent(Fm02::class.java),
                 FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
                 FragmentIntent(Fm12::class.java)
+        ).apply { waitActionPost() }.run {
+            finishTasksKt(0)
+            waitActionPost()
+            current<Fm12>()
+        }.run xx@{
+            checkState(1, Fm12::class.java, 2)
+            fragmentNav.taskIds().run {
+                assertTrue(size == 1)
+                assertTrue(get(0) == 1 && fragmentNav.getTaskId(this@xx) == get(0))
+            }
+        }
+    }
+
+
+    /**
+     *```java
+     * action:
+     *      [task0]:Fm01, Fm02 -->remove
+     *      [task1]:Fm11, Fm12 -->remove
+     *      [task2]:Fm21, Fm22
+     * expect:
+     *      [task2]:Fm21, Fm22
+     *
+     * action1:
+     *      start Fm31 in new task
+     * expect:
+     *      [task2]: Fm21, Fm22
+     *      [task3]: Fm31
+     *```
+     *
+     */
+    @Test
+    fun testFinishNotCurrentTasksThenStartNewTask(){
+        startFragmentKt<Fm22>(
+                FragmentIntent(Fm02::class.java),
+                FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm12::class.java),
+                FragmentIntent(Fm21::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm22::class.java)
+        ).apply { waitActionPost() }.run {
+            finishTasksKt(0, 1)
+            waitActionPost()
+            current<Fm22>()
+        }.run check@{
+            checkState(1, Fm22::class.java, 2)
+            fragmentNav.taskIds().run {
+                assertTrue(size == 1)
+                assertTrue(get(0) == 2 && fragmentNav.getTaskId(this@check) == get(0))
+                get(0)
+            }
+        }.run {
+            startFragmentKt<Fm31>(FragmentIntent(Fm31::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK))
+            waitActionPost()
+            assertTrue(fragmentNav.getTaskId(current<Fm31>()) == (this + 1))
+        }
+    }
+
+    /**
+     *```java
+     * action:
+     *      [task0]:Fm01, Fm02 -->remove
+     *      [task1]:Fm11, Fm12
+     *      [task2]:Fm21, Fm22 -->remove
+     * expect:
+     *      [task1]:Fm11, Fm12
+     *```
+     *
+     */
+    @Test
+    fun testFinishTasksWithCurrentTask(){
+        startFragmentKt<Fm22>(
+                FragmentIntent(Fm02::class.java),
+                FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm21::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm22::class.java)
+        ).apply { waitActionPost() }.run {
+            finishTasksKt(0, 2)
+            waitActionPost()
+            current<Fm11>()
+        }.run check@{
+            checkState(1, Fm11::class.java, 1)
+            fragmentNav.taskIds().run {
+                assertTrue(size == 1)
+                assertTrue(get(0) == 1 && fragmentNav.getTaskId(this@check) == get(0))
+                get(0)
+            }
+        }
+    }
+
+
+    /**
+     *```java
+     * action:
+     *      [task0]:Fm01, Fm02 -->remove
+     *      [task1]:Fm11, Fm12 -->remove
+     *      [task2]:Fm21, Fm22 -->remove
+     * expect:
+     *      activity finished
+     *```
+     *
+     */
+    @Test
+    fun testFinishAllTasks(){
+        startFragmentKt<Fm22>(
+                FragmentIntent(Fm02::class.java),
+                FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm21::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm22::class.java)
+        ).apply { waitActionPost() }.run {
+            finishTasksKt(0, 1, 2)
+            waitActionPost()
+            null
+        }.run check@{
+            checkActivityDestroyed()
+        }
+    }
+
+    private fun checkActivityDestroyed(){
+        assertTrue(activity.isDestroyed)
+        assertTrue(fragmentNav.currentFragment == null)
+        sysFragments.fragments.filter { it.isAdded }.run {
+            assertTrue(isEmpty())
+        }
+    }
+
+    /**
+     *```java
+     * action:
+     *      [task0]:Fm01
+     *      [task1]:Fm12 -->bring to front
+     *      [task2]:Fm21, Fm22
+     * expect:
+     *      [task0]:Fm01
+     *      [task2]:Fm21, Fm22, Fm12
+     *```
+     *
+     */
+    @Test
+    fun testBringNotCurrentToFront() {
+        val fm = startFragmentKt<Fm12>(FragmentIntent(Fm12::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)).apply { waitActionPost() }
+
+        startFragmentKt<Fm22>(
+                FragmentIntent(Fm21::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm22::class.java)
         ).apply {
             waitActionPost()
         }.run {
             synchronized(FnTest::class.java){
                 activity.runOnUiThread {
                     //BringToFront action will update the views' order, so must run on ui thread
-                    startFragmentKt<Fm02>(FragmentIntent(Fm02::class.java).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT))
+                    startFragmentKt<Fm12>(FragmentIntent(Fm12::class.java).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT))
                 }
             }
             waitActionPost()
-            current<Fm02>()
+            current<Fm12>()
         }.run {
             waitActionPost()
+            assertTrue(fragmentNav.taskIds().filter { it == 1 }.isEmpty())
             Assert.assertTrue(fm == this)
             checkTopView(view!!)
-            checkState(2, Fm02::class.java)
+            checkState(2, Fm12::class.java)
         }
     }
 
+    /**
+     *```java
+     * action:
+     *      [task0]:Fm01, Fm02 -->bring to front, Fm03
+     * expect:
+     *      [task0]:Fm01, Fm03, Fm02
+     *```
+     *
+     */
     @Test
-    fun testBringNotCurrentInSameTaskToFront(){
+    fun testBringNotCurrentToFrontInSameTask(){
         val fm = startFragmentKt<Fm02>(FragmentIntent(Fm02::class.java)).apply { waitActionPost() }
 
         startFragmentKt<Fm03>(
@@ -124,6 +307,18 @@ class FnTest : BaseFmTest() {
         }
     }
 
+    /**
+     *```java
+     * action:
+     *      [task0]:Fm01, Fm02 -->bring to front in new task
+     *      [task1]:Fm11, Fm12
+     * expect:
+     *      [task0]:Fm01
+     *      [task1]:Fm11, Fm12
+     *      [task2]:Fm02
+     *```
+     *
+     */
     @Test
     fun testBringNotCurrentToFrontInNewTask() {
         val fm = startFragmentKt<Fm02>(FragmentIntent(Fm02::class.java)).apply { waitActionPost() }
@@ -247,37 +442,6 @@ class FnTest : BaseFmTest() {
         }
     }
 
-//    @Test
-//    fun testStartFragmentInOtherTaskForResult1(){
-//        val result = createFragmentResult();
-//        startFragmentForResultKt<Fm13>(
-//                result.requestCode
-//                , FragmentIntent(Fm02::class.java)
-//                , FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
-//                , FragmentIntent(Fm12::class.java)
-//                , FragmentIntent(Fm13::class.java)
-//        ).run {
-//            waitActionPost()
-//            //这儿setResult除非能在一个commit内回到startFragmentForResult的初始页面，否则result是不会被传递回初始页面的
-//            setResult(result.resultCode, result.result)
-//            finishKt()
-//            waitActionPost()
-//            current<Fm12>()
-//        }.run { //current Fm12
-//            assertTrue(fragmentResult == FmBase.EMPTY_RESULT)
-//            finishTaskKt()
-//            waitActionPost()
-//            current<Fm02>()
-//        }.run {
-//            finish()
-//            waitActionPost()
-//            current<Fm01>()
-//        }.run {
-//            assertTrue(fragmentResult == FmBase.EMPTY_RESULT)
-//            checkState(1, Fm01::class.java)
-//        }
-//    }
-
     private fun createFragmentResult(): FmBase.FragmentResult {
         return FmBase.FragmentResult(1, 2, "FragmentResultOK");
     }
@@ -326,6 +490,26 @@ class FnTest : BaseFmTest() {
 
         assertTrue(sysFragments.fragments.size == 4)
         checkState(2, Fm12::class.java)
+    }
+
+    @Test
+    fun testSaveAndRestoreOp(){
+        val parcel = Parcel.obtain()
+        Op().apply {
+            op = Op.OP_ADD
+            setAnim(123, 456)
+            fragmentId = "abcxyz"
+            writeToParcel(parcel, describeContents())
+        }.run {
+            val source = this
+            parcel.setDataPosition(0)
+            Op.CREATOR.createFromParcel(parcel).run {
+                assertTrue(source.enterAnim == enterAnim)
+                assertTrue(source.exitAnim == exitAnim)
+                assertTrue(source.fragmentId == fragmentId)
+                assertTrue(source.op == op)
+            }
+        }
     }
 
 }

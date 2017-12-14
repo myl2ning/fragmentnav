@@ -23,8 +23,6 @@ public interface FragmentNav {
 
     void finishTask(FnFragment fragment);
 
-    void finishTask(int... taskIds);
-
     void finishTasks(int... taskIds);
 
     FnFragment getCurrentFragment();

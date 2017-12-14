@@ -58,8 +58,8 @@ class FragmentTaskManager {
         return copy;
     }
 
-    public void commit(ArrayList<Op> ops) {
-        if (ops == null) {
+    void commit(ArrayList<Op> ops) {
+        if (ops == null || ops.isEmpty()) {
             return;
         }
 
@@ -150,26 +150,24 @@ class FragmentTaskManager {
                 case Op.OP_HIDE:
                     transaction.hide(fragment);
                     break;
-
-                case Op.OP_ATTACH:
-                    transaction.attach(fragment);
-                    break;
-                case Op.OP_DETACH:
-                    transaction.detach(fragment);
-                    break;
             }
         }
 
         if(lastRemoved != null) Trace.p(TAG, "Last remove:%s", lastRemoved.getClass().getSimpleName());
         try{
-            transaction.commit();
+            //If all fragments are removed from task, just finish activity and let activity destroy the fragments
+            if(!isEmpty()){
+                transaction.commit();
+            } else {
+                showFragment = null;
+            }
+
             setCurrentFragment(showFragment);
             setFragmentResult(lastRemoved, showFragment);
         } catch (Exception e){
             Trace.p(TAG, e);
             set(copy);
         }
-
 
         if(isEmpty()){
             finishActivity();
@@ -284,24 +282,24 @@ class FragmentTaskManager {
         return false;
     }
 
-    public boolean almostEmpty() {
+    boolean almostEmpty() {
         return mFragmentTasks.size() == 1 && mFragmentTasks.valueAt(0).size() == 1;
     }
 
-    boolean isEmpty() {
+    private boolean isEmpty() {
         return mFragmentTasks.size() == 0 || (mFragmentTasks.size() == 1 && mFragmentTasks.valueAt(0).size() == 0);
     }
 
-    public List<FnFragment> lastTask() {
-        List<FnFragment> fragments = null;
-        if (mFragmentTasks.size() == 0) {
-            return createTask();
-        } else {
-            fragments = mFragmentTasks.valueAt(mFragmentTasks.size() - 1);
-        }
-
-        return fragments;
-    }
+//    public List<FnFragment> lastTask() {
+//        List<FnFragment> fragments = null;
+//        if (mFragmentTasks.size() == 0) {
+//            return createTask();
+//        } else {
+//            fragments = mFragmentTasks.valueAt(mFragmentTasks.size() - 1);
+//        }
+//
+//        return fragments;
+//    }
 
     private ArrayList<FnFragment> createTask() {
         ArrayList<FnFragment> fragments = new ArrayList<>();

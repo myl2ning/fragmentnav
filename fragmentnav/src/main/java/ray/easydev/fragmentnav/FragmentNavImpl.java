@@ -2,8 +2,6 @@ package ray.easydev.fragmentnav;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcel;
@@ -15,12 +13,6 @@ import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -138,8 +130,6 @@ class FragmentNavImpl implements FragmentNav {
         if (!hasBit(tFlag, FragmentIntent.FLAG_BROUGHT_TO_FRONT)
                 || (targetFragment = bringToFront(cls, ops)) == null) {
 
-            int myFlag = invoker == null ? 0 : invoker.getIntent().getFlags();
-
             try {
                 targetFragment = (FnFragment) cls.newInstance();
                 targetFragment.setArguments(intent.getExtras());
@@ -179,84 +169,6 @@ class FragmentNavImpl implements FragmentNav {
         }
 
         return fragment;
-    }
-
-    public void finishTask(final int... removeTaskIds) {
-        final SparseArray<ArrayList<FnFragment>> fragmentTasks = mFragmentTask.copy();
-        final int taskSize = fragmentTasks.size();
-        if (taskSize <= 1) {
-            //如果仅有一个task，则直接finish activity
-            finishActivity();
-            return;
-        }
-
-        int removeTaskId = removeTaskIds[0];
-        List<FnFragment> task = fragmentTasks.get(removeTaskId);
-        if (task == null) {
-            return;
-        }
-
-        ArrayList<Op> ops = new ArrayList<>();
-        FnFragment tail = null, vFragment = null;
-
-        boolean hasRemoveAnim = false;
-        if (taskSize > 0) {
-            tail = null;
-            int j = 1;
-            for (FnFragment fragment : task) {
-                if (j == task.size()) {
-                    tail = fragment;
-                }
-
-                Op op = remove(ops, fragment);
-                if(!hasRemoveAnim && op.exitAnim != 0){
-                    hasRemoveAnim = true;
-                }
-
-                j++;
-            }
-
-            if (taskSize > 1) {
-                //存在至少2个Task队列
-                //即将显示的task的index
-                int showTaskIndex = 0;
-                final int showingTaskId = getTaskId(getCurrentFragment());
-                int showingTaskIndex = fragmentTasks.indexOfKey(showingTaskId);
-                int removeTaskIndex = fragmentTasks.indexOfKey(removeTaskId);
-
-                if (removeTaskIndex == showingTaskIndex) {
-                    //删除的task与正在显示的task是同一个
-                    if (removeTaskIndex == taskSize - 1) {
-                        //删除的task是队尾的task，获取pre task并且显示
-                        //***[S][R]
-                        showTaskIndex = taskSize - 2;
-                    } else {
-                        //删除的task不是队尾的task，获取队尾task显示
-                        //***[R][S]
-                        showTaskIndex = taskSize - 1;
-                    }
-                    List<FnFragment> showTask = fragmentTasks.valueAt(showTaskIndex);
-                    vFragment = mFragmentTask.getTailFragment(showTask, 0);
-                    if (vFragment != null) {
-                        Op op = show(ops, vFragment);
-                        if(!hasRemoveAnim || getCurrentFragment() == null || !getCurrentFragment().isVisible()){
-                            op.clearAnim();
-                        }
-                    }
-                }
-            }
-        }
-
-        printOps(ops);
-        tryCommit(ops);
-//        if (tryCommit(ops)) {
-//            setFragmentResult(tail, vFragment);
-//
-//            if (fragmentTasks.size() == 0) {
-//                //必须放在commit之后
-//                finishActivity();
-//            }
-//        }
     }
 
     public void finishTasks(final int... removeTaskIds) {
@@ -313,7 +225,7 @@ class FragmentNavImpl implements FragmentNav {
             }
             final int removeTaskId = getTaskId(fragment);
             Trace.p(TAG, "Finish task:%s", removeTaskId);
-            finishTask(removeTaskId);
+            finishTasks(removeTaskId);
         } else {
             Trace.p(TAG, "Add pending call");
             addPendingCall(new Runnable() {
@@ -327,7 +239,7 @@ class FragmentNavImpl implements FragmentNav {
 
     public void finish(final FnFragment fragment) {
         if (mIsRestoring) {
-            //TODO Ugly but simple, will merge finish action into ops in the future...
+            //TODO Ugly but simple...
             addPendingCall(new Runnable() {
                 @Override
                 public void run() {
@@ -341,77 +253,76 @@ class FragmentNavImpl implements FragmentNav {
             return;
         }
 
-        if (fragmentSize() <= 1) {
-            //如果仅有一个fragment，则直接finish activity
-            finishActivity();
-            return;
-        }
-
-        final FnFragment currentFragment = getCurrentFragment();
-        final SparseArray<ArrayList<FnFragment>> mFragmentTasks = mFragmentTask.copy();
-        FnFragment vFragment = null;
-        final int taskId = getTaskId(fragment);
-        final int showingTaskId = getTaskId(currentFragment);
-
-        List<FnFragment> task = mFragmentTasks.get(taskId);
         ArrayList<Op> ops = new ArrayList<>();
 
-        if (taskId == showingTaskId && task != null) {
-            //如果删除的fragment所在的task正在显示，则选择一个fragment显示
-            if (fragment == currentFragment) {
-                //如果删除的就是当前显示的fragment
-                if (task.size() > 1) {
-                    //该task有至少2个fragment，则获取pre fragment
-                    //***[S][R]
-                    vFragment = mFragmentTask.getTailFragment(task, 1);//task.get(task.size() - 1);
-                } else {
-                    //该task仅有一个fragment，取尾部的task显示
-                    if (mFragmentTasks.size() > 1) {
-                        List<FnFragment> showTask = null;
-                        int index = mFragmentTasks.size() - 1;
-                        int willShowTaskId;
+        int fragmentSize = fragmentSize();
+        if (fragmentSize == 0) {
+            finishActivity();
+            return;
+        } else if (fragmentSize == 1){
+            Op op = new Op(Op.OP_REMOVE, getCurrentFragment());
+            op.clearAnim();
+            ops.add(op);
+        } else {
+            final FnFragment currentFragment = getCurrentFragment();
+            final SparseArray<ArrayList<FnFragment>> mFragmentTasks = mFragmentTask.copy();
+            FnFragment vFragment = null;
+            final int taskId = getTaskId(fragment);
+            final int showingTaskId = getTaskId(currentFragment);
 
-                        do {
-                            willShowTaskId = mFragmentTasks.keyAt(index);
-                            index--;
-                        } while (showingTaskId == willShowTaskId);
+            List<FnFragment> task = mFragmentTasks.get(taskId);
 
-                        showTask = mFragmentTasks.get(willShowTaskId);
-                        vFragment = mFragmentTask.getTailFragment(showTask, 0);
+            if (taskId == showingTaskId && task != null) {
+                //如果删除的fragment所在的task正在显示，则选择一个fragment显示
+                if (fragment == currentFragment) {
+                    //如果删除的就是当前显示的fragment
+                    if (task.size() > 1) {
+                        //该task有至少2个fragment，则获取pre fragment
+                        //***[S][R]
+                        vFragment = mFragmentTask.getTailFragment(task, 1);//task.get(task.size() - 1);
+                    } else {
+                        //该task仅有一个fragment，取尾部的task显示
+                        if (mFragmentTasks.size() > 1) {
+                            List<FnFragment> showTask = null;
+                            int index = mFragmentTasks.size() - 1;
+                            int willShowTaskId;
+
+                            do {
+                                willShowTaskId = mFragmentTasks.keyAt(index);
+                                index--;
+                            } while (showingTaskId == willShowTaskId);
+
+                            showTask = mFragmentTasks.get(willShowTaskId);
+                            vFragment = mFragmentTask.getTailFragment(showTask, 0);
+                        }
                     }
+                } else {
+                    //删除的不是当前显示的fragment,无需操作
                 }
-            } else {
-                //删除的不是当前显示的fragment,无需操作
             }
-        }
 
-        Op opRemove = remove(ops, fragment);
+            Op opRemove = remove(ops, fragment);
 
-        Op opShow = null;
-        if (vFragment != null) {
-            opShow = show(ops, vFragment);
-        }
+            Op opShow = null;
+            if (vFragment != null) {
+                opShow = show(ops, vFragment);
+            }
 
-        if (!fragment.isVisible() || mFragmentTask.almostEmpty()) {
-            opRemove.clearAnim();
-        }
+            if (!fragment.isVisible() || mFragmentTask.almostEmpty()) {
+                opRemove.clearAnim();
+            }
 
-        if(opShow != null && opRemove.exitAnim == 0){
-            opShow.clearAnim();
+            if(opShow != null && opRemove.exitAnim == 0){
+                opShow.clearAnim();
+            }
         }
 
         printOps(ops);
         tryCommit(ops);
-//        if (tryCommit(ops)) {
-//            setFragmentResult(fragment, vFragment);
-//            if (mFragmentTask.isEmpty()) {
-//                finishActivity();
-//            }
-//        }
     }
 
 
-    void finishActivity() {
+    private void finishActivity() {
         mActivity.finish();
     }
 
@@ -455,27 +366,10 @@ class FragmentNavImpl implements FragmentNav {
     }
 
 
-    private Op attach(List<Op> ops, FnFragment fragment) {
-        Op op = new Op(Op.OP_ATTACH, fragment);
-        ops.add(op);
-        return op;
-    }
-
-    private Op detach(List<Op> ops, FnFragment fragment) {
-        Op op = new Op(Op.OP_DETACH, fragment);
-        ops.add(op);
-        return op;
-    }
-
     private boolean tryCommit(ArrayList<Op> ops) {
         if (!isReady()) {
             Trace.p(TAG, "Called after onSavedInstance or is during restore, save ops");
             mPendingOps.add(new PendingOps(ops));
-
-            if (mIsActivitySavedInstanceState) {
-                savePendingOps(mPendingOps);
-            }
-
             return false;
         } else {
             mFragmentTask.commit(ops);
@@ -509,9 +403,6 @@ class FragmentNavImpl implements FragmentNav {
 
     void onActivityResumed() {
         mIsRestoring = mIsActivitySavedInstanceState = false;
-
-        if (pendingOpsRestoreHelper != null)
-            pendingOpsRestoreHelper.deleteSavedFile(getActivity().getApplicationContext());
         commitPendingOps();
         commitPendingCalls();
     }
@@ -626,21 +517,9 @@ class FragmentNavImpl implements FragmentNav {
         }
     }
 
-    private void savePendingOps(ArrayList<PendingOps> pendingOps) {
-        if (pendingOpsRestoreHelper != null) {
-            pendingOpsRestoreHelper.save(getActivity().getApplicationContext(), pendingOps);
-            printPendingOps(pendingOps);
-        }
-    }
-
-
-    //由于保存未启动的fragment的状态比较麻烦，故app还原时commit pending ops功能暂不开放
-    private PendingOpsRestoreHelper pendingOpsRestoreHelper;// = new PendingOpsRestoreHelper();
 
     public void saveState(Bundle bundle) {
         mFragmentTask.saveFragmentStates();
-        if (pendingOpsRestoreHelper != null)
-            pendingOpsRestoreHelper.onSaveInstanceState(this, bundle);
 
         mIsActivitySavedInstanceState = true;
 
@@ -655,10 +534,6 @@ class FragmentNavImpl implements FragmentNav {
     public void restoreState(@NonNull Bundle savedInstanceState) {
         if (mIsRestoring) {
             mFragmentTask.restoreFragmentStates();
-
-            if (pendingOpsRestoreHelper != null)
-                mPendingOps = pendingOpsRestoreHelper.restore(this, savedInstanceState);
-
             mIsRestoring = false;
 
         }
@@ -723,130 +598,13 @@ class FragmentNavImpl implements FragmentNav {
         }
     };
 
-    static class PendingOpsRestoreHelper {
-        private final static String SAVED_TIMES = IdGenerator.fromClass(PendingOpsRestoreHelper.class) + "_SAVED_TIMES";
-        private final static String FRAGMENTNAV_ID = IdGenerator.fromClass(PendingOpsRestoreHelper.class) + "_FRAGMENTNAV_ID";
-
-        private String mFragmentNavId;
-        private int mSavedTimes = 0;
-
-        void onSaveInstanceState(FragmentNavImpl fragmentNavV3, Bundle outState) {
-            if (mFragmentNavId == null) {
-                mFragmentNavId = Integer.toHexString(fragmentNavV3.hashCode());
-            }
-
-            outState.putString(FRAGMENTNAV_ID, mFragmentNavId);
-            outState.putInt(SAVED_TIMES, ++mSavedTimes);
-
-            Trace.p(getClass(), "Update pending ops save id:%s", getSaveId());
-        }
-
-        ArrayList<PendingOps> restore(@NonNull FragmentNavImpl fragmentNav, Bundle bundle) {
-            mFragmentNavId = bundle.getString(FRAGMENTNAV_ID, mFragmentNavId);
-            mSavedTimes = bundle.getInt(SAVED_TIMES, mSavedTimes);
-
-            Trace.p(getClass(), "Restore pending ops with id:%s", getSaveId());
-
-            long time = System.currentTimeMillis();
-            File saveFile = getSaveFile(fragmentNav.getActivity().getApplicationContext(), getSaveId());
-            ObjectInputStream ois = null;
-            try {
-                if (saveFile.isFile()) {
-                    ois = new ObjectInputStream(new FileInputStream(saveFile));
-                    ArrayList<PendingOps> pendingOps = (ArrayList<PendingOps>) ois.readObject();
-                    for (PendingOps pendingOp : pendingOps) {
-                        if (pendingOp.ops != null) {
-                            for (Op op : pendingOp.ops) {
-                                op.fragment = fragmentNav.mFragmentTask.findFragment(op.fragmentId);
-                            }
-                        }
-                    }
-
-                    return pendingOps;
-                }
-            } catch (Exception e) {
-                //ignore
-                Trace.e(getClass(), e);
-            } finally {
-                Trace.p(getClass(), "Restore pending ops used:%sms", (System.currentTimeMillis() - time));
-                slientClose(ois);
-            }
-
-            return new ArrayList<>(0);
-
-        }
-
-
-        void save(@NonNull Context c, @NonNull ArrayList<PendingOps> pendingOps) {
-            Trace.p(getClass(), "Save pending ops with id:%s", getSaveId());
-            if (!pendingOps.isEmpty()) SaveTask.save(c, getSaveId(), pendingOps);
-        }
-
-        String getSaveId() {
-            return mFragmentNavId + "_" + mSavedTimes;
-        }
-
-        void deleteSavedFile(Context c) {
-            if (!TextUtils.isEmpty(mFragmentNavId) && mSavedTimes > 0) {
-                File file = getSaveFile(c, getSaveId());
-                if (!file.delete()) {
-                    file.deleteOnExit();
-                }
-            }
-        }
-
-        static File getSaveFile(Context c, String fileName) {
-            return new File(c.getCacheDir(), fileName);
-        }
-
-        private static class SaveTask extends AsyncTask<Object, Void, Boolean> {
-
-            public static void save(@NonNull Context c, @NonNull String fileName, @NonNull ArrayList<PendingOps> ops) {
-                new SaveTask().execute(c, fileName, ops);
-            }
-
-            @Override
-            protected Boolean doInBackground(Object[] objs) {
-                ObjectOutputStream oos = null;
-                try {
-                    Context context = (Context) objs[0];
-                    String saveId = (String) objs[1];
-                    ArrayList<PendingOps> pendingOps = (ArrayList<PendingOps>) objs[2];
-
-                    File file = getSaveFile(context, saveId);
-                    if (file.isFile() || file.createNewFile()) {
-                        FileOutputStream fos = new FileOutputStream(file);
-                        oos = new ObjectOutputStream(fos);
-                        oos.writeObject(pendingOps);
-                        oos.flush();
-                    }
-
-                    return true;
-                } catch (Exception e) {
-                    //ignore
-                } finally {
-                    slientClose(oos);
-                }
-
-                return false;
-            }
-        }
-
-        private static void slientClose(Closeable closeable) {
-            try {
-                if (closeable != null) closeable.close();
-            } catch (Exception e) {
-                //ignore
-            }
-        }
-    }
 
     static class RequestCodeInfo implements Parcelable {
         private final static String KEY = IdGenerator.fromClass(RequestCodeInfo.class);
         String invokerId;
         int requestCode;
 
-        public RequestCodeInfo(String invokerId, int requestCode) {
+        RequestCodeInfo(String invokerId, int requestCode) {
             this.invokerId = invokerId;
             this.requestCode = requestCode;
         }
@@ -856,7 +614,7 @@ class FragmentNavImpl implements FragmentNav {
             requestCode = in.readInt();
         }
 
-        public String getInvokerId() {
+        String getInvokerId() {
             return invokerId;
         }
 
