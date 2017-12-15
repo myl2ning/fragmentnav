@@ -6,6 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import ray.easydev.fragmentnav.fragments.Fm01
 import java.io.Serializable
+
 /**
  * Created by Ray on 2017/12/12.
  */
@@ -20,7 +21,7 @@ class FragmentIntentTest : BaseFmTest() {
 
         val parcel = Parcel.obtain()
 
-        FragmentIntent(Fm01::class.java).apply {
+        FragmentIntent(Fm01::class.java).run {
             flags = FragmentIntent.FLAG_NEW_TASK
             addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT)
             tag = "This is tag"
@@ -36,31 +37,35 @@ class FragmentIntentTest : BaseFmTest() {
             putExtra("SerializeExtra", psExtra as Serializable)
 
             writeToParcel(parcel, describeContents())
-        }
+            extras
+        }.run xx@{
+            parcel.setDataPosition(0)
+            FragmentIntent.CREATOR.createFromParcel(parcel).run {
+                //because extras == fragment.argument and argument will be saved by fragment, so extras will not be saved into bundle
+                extras = this@xx
+                assertTrue(flags == (FragmentIntent.FLAG_NEW_TASK or FragmentIntent.FLAG_BROUGHT_TO_FRONT))
+                assertTrue("This is tag" == tag)
+                assertTrue("invokerId" == invokerId)
+                assertTrue(inAnim == 123)
+                assertTrue(outAnim == 124)
+                assertTrue(showAnim == 125)
+                assertTrue(hideAnim == 126)
+                assertTrue(targetCls == Fm01::class.java)
 
-        parcel.setDataPosition(0)
+                extras.run {
+                    assertTrue(getInt("IntExtra") == 1)
+                    assertTrue(getLong("LongExtra") == 1024L)
+                    assertTrue(getDouble("DoubleExtra") == 1024.1024)
+                    assertTrue(getFloat("FloatExtra") == 1024.1025f)
+                    assertTrue(getString("StringExtra") == "HelloFn")
+                    assertTrue(getParcelable<PSVo>("ParcelExtra") == psExtra)
+                    assertTrue(getSerializable("SerializeExtra") == psExtra)
+                }
 
-        FragmentIntent.CREATOR.createFromParcel(parcel).run {
-            assertTrue(flags == (FragmentIntent.FLAG_NEW_TASK or FragmentIntent.FLAG_BROUGHT_TO_FRONT))
-            assertTrue("This is tag" == tag)
-            assertTrue("invokerId" == invokerId)
-            assertTrue(inAnim == 123)
-            assertTrue(outAnim == 124)
-            assertTrue(showAnim == 125)
-            assertTrue(hideAnim == 126)
-            assertTrue(targetCls == Fm01::class.java)
-
-            extras.run {
-                assertTrue(getInt("IntExtra") == 1)
-                assertTrue(getLong("LongExtra") == 1024L)
-                assertTrue(getDouble("DoubleExtra") == 1024.1024)
-                assertTrue(getFloat("FloatExtra") == 1024.1025f)
-                assertTrue(getString("StringExtra") == "HelloFn")
-                assertTrue(getParcelable<PSVo>("ParcelExtra") == psExtra)
-                assertTrue(getSerializable("SerializeExtra") == psExtra)
             }
-
         }
+
+
 
     }
 

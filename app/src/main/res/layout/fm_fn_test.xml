@@ -42,5 +42,5 @@
         android:id="@+id/test_btn2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="open setting" />
+        android:text="Switch permission to cause save and restore" />
 </LinearLayout>

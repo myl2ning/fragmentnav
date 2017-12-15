@@ -13,7 +13,7 @@ import java.util.List;
 
 import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.sample.utils.Utils;
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 
 /**
@@ -28,7 +28,7 @@ public class FmTest extends FmBase {
         getView().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Trace.p(getClass(), "onNewIntent:%s", Utils.joinCollections(getFragmentManager().getFragments(), ", "));
+                Log.p(getClass(), "onNewIntent:%s", Utils.joinCollections(getFragmentManager().getFragments(), ", "));
                 printAdded();
                 printActive();
             }
@@ -41,7 +41,7 @@ public class FmTest extends FmBase {
             Field field = getFragmentManager().getClass().getDeclaredField("mAdded");
             field.setAccessible(true);
             List<Fragment> fragments = (List<Fragment>) field.get(getFragmentManager());
-            Trace.p("mAdded", Utils.joinCollections(fragments, ", "));
+            Log.p("mAdded", Utils.joinCollections(fragments, ", "));
 
         } catch (Exception e){
 
@@ -59,7 +59,7 @@ public class FmTest extends FmBase {
             Method method = getFragmentManager().getClass().getDeclaredMethod("getActiveFragments");
             method.setAccessible(true);
             List<Fragment> fragments = (List<Fragment>) method.invoke(getFragmentManager());
-            Trace.p("mActive", Utils.joinCollections(fragments, ", "));
+            Log.p("mActive", Utils.joinCollections(fragments, ", "));
         } catch (Exception e){
 
         }
@@ -151,7 +151,7 @@ public class FmTest extends FmBase {
     @Override
     public void onFragmentResult(int requestCode, int resultCode, Object data) {
         super.onFragmentResult(requestCode, resultCode, data);
-        Trace.p(getClass(), "onFragmentResult:%s, %s, %s", requestCode, resultCode, data);
+        Log.p(getClass(), "onFragmentResult:%s, %s, %s", requestCode, resultCode, data);
     }
 
 }

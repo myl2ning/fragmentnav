@@ -9,7 +9,7 @@ import ray.easydev.fragmentnav.FnActivity;
 import ray.easydev.fragmentnav.FnFragmentActivity;
 import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.sample.fragments.FmEnter;
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 
 /**
@@ -18,7 +18,7 @@ import ray.easydev.fragmentnav.utils.Trace;
 
 public class MainActivity extends FnFragmentActivity implements FnActivity {
     static {
-        Trace.setLogLevel(true, 10);
+        Log.setLogLevel(true, 10);
         FragmentIntent.getDefault().setAnim(R.anim.page_in, R.anim.page_out, R.anim.page_show, R.anim.page_hide);
     }
 
@@ -26,7 +26,6 @@ public class MainActivity extends FnFragmentActivity implements FnActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        Trace.p(getClass(), "Has restore data:%s", (savedInstanceState != null));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         rootView = (ViewGroup) findViewById(R.id.layout_main);
@@ -38,13 +37,7 @@ public class MainActivity extends FnFragmentActivity implements FnActivity {
             sb.append(rootView.getChildAt(i).getTag()).append(", ");
         }
 
-        Trace.p(getClass(), sb.toString());
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString("Hello", "World");
+        Log.p(getClass(), sb.toString());
     }
 
     @Override

@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import ray.easydev.fragmentnav.utils.LogLevel;
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 import static ray.easydev.fragmentnav.FnUtils.INVALID_INT;
 import static ray.easydev.fragmentnav.FnUtils.criticalError;
@@ -59,7 +59,7 @@ class FragmentNavImpl implements FragmentNav {
             field.setAccessible(true);
             mHandler = (Handler) field.get(activity);
 
-            Trace.p(getClass(), "Init handler:%s", mHandler != null);
+            Log.p(getClass(), "Init handler:%s", mHandler != null);
         } catch (Exception e) {
             mHandler = new Handler();
         }
@@ -224,10 +224,10 @@ class FragmentNavImpl implements FragmentNav {
                 return;
             }
             final int removeTaskId = getTaskId(fragment);
-            Trace.p(TAG, "Finish task:%s", removeTaskId);
+            Log.p(TAG, "Finish task:%s", removeTaskId);
             finishTasks(removeTaskId);
         } else {
-            Trace.p(TAG, "Add pending call");
+            Log.p(TAG, "Add pending call");
             addPendingCall(new Runnable() {
                 @Override
                 public void run() {
@@ -368,7 +368,7 @@ class FragmentNavImpl implements FragmentNav {
 
     private boolean tryCommit(ArrayList<Op> ops) {
         if (!isReady()) {
-            Trace.p(TAG, "Called after onSavedInstance or is during restore, save ops");
+            Log.p(TAG, "Called after onSavedInstance or is during restore, save ops");
             mPendingOps.add(new PendingOps(ops));
             return false;
         } else {
@@ -383,12 +383,12 @@ class FragmentNavImpl implements FragmentNav {
             sb.append("\n   ").append(op);
         }
         sb.append("\n** Ops **");
-        Trace.p(TAG, sb.toString());
+        Log.p(TAG, sb.toString());
     }
 
     private void printPendingOps(List<PendingOps> pendingOps) {
         if (pendingOps == null || pendingOps.isEmpty()) {
-            Trace.p(TAG, "No pending ops");
+            Log.p(TAG, "No pending ops");
             return;
         }
 
@@ -433,7 +433,7 @@ class FragmentNavImpl implements FragmentNav {
 
     private void commitPendingOps() {
         if (mPendingOps != null && !mPendingOps.isEmpty()) {
-            Trace.p(TAG, "Commit pending transactions");
+            Log.p(TAG, "Commit pending transactions");
             printPendingOps(mPendingOps);
             for (PendingOps pendingOps : mPendingOps) {
                 pendingOps.commit(this);
@@ -521,7 +521,7 @@ class FragmentNavImpl implements FragmentNav {
     public void saveState(Bundle bundle) {
         mFragmentTask.saveFragmentStates();
         mIsActivitySavedInstanceState = true;
-        Trace.p(TAG, "Save state done");
+        Log.p(TAG, "Save state done");
     }
 
     /**

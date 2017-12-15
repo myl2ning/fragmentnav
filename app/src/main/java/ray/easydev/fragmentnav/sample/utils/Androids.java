@@ -13,7 +13,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Process;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +25,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 import static android.content.pm.PackageManager.GET_SERVICES;
 
@@ -38,7 +37,7 @@ public class Androids {
         try {
             packageInfo = packageManager.getPackageInfo(c.getPackageName(), GET_SERVICES);
         } catch (Exception e) {
-            Log.e("AndroidUtils", "Could not get package info for " + c.getPackageName(), e);
+            android.util.Log.e("AndroidUtils", "Could not get package info for " + c.getPackageName(), e);
             return false;
         }
 
@@ -122,7 +121,7 @@ public class Androids {
         if (resourceId > 0) {
             result = c.getResources().getDimensionPixelSize(resourceId);
         } else {
-            Trace.e(Androids.class, "Can not get status bar");
+            Log.e(Androids.class, "Can not get status bar");
         }
         return result;
     }

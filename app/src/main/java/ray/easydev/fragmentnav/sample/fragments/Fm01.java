@@ -14,7 +14,7 @@ public class Fm01 extends FmBase {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if(getArguments().containsKey(KEY_STRING)){
+        if(getIntent().getExtras().containsKey(KEY_STRING)){
             Toast.makeText(getContext(), "Extra found:" + getArguments().get(KEY_STRING), Toast.LENGTH_SHORT).show();
         }
     }

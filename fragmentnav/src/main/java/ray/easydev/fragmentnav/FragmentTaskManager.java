@@ -16,7 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import ray.easydev.fragmentnav.utils.LogLevel;
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 import static ray.easydev.fragmentnav.FnUtils.INVALID_INT;
 import static ray.easydev.fragmentnav.FnUtils.criticalError;
@@ -153,7 +153,7 @@ class FragmentTaskManager {
             }
         }
 
-        if(lastRemoved != null) Trace.p(TAG, "Last remove:%s", lastRemoved.getClass().getSimpleName());
+        if(lastRemoved != null) Log.p(TAG, "Last remove:%s", lastRemoved.getClass().getSimpleName());
         try{
             //If all fragments are removed from task, just finish activity and let activity destroy the fragments
             if(!isEmpty()){
@@ -165,7 +165,7 @@ class FragmentTaskManager {
             setCurrentFragment(showFragment);
             setFragmentResult(lastRemoved, showFragment);
         } catch (Exception e){
-            Trace.p(TAG, e);
+            Log.p(TAG, e);
             set(copy);
         }
 
@@ -177,7 +177,7 @@ class FragmentTaskManager {
 
     private void finishActivity() {
         fragmentNav.getActivity().finish();
-        Trace.p(TAG, "***** finish activity *****");
+        Log.p(TAG, "***** finish activity *****");
     }
 
     private void setFragmentResult(@Nullable FnFragment from, @Nullable FnFragment receiver){
@@ -217,11 +217,11 @@ class FragmentTaskManager {
     }
 
     private void doBring(Fragment fragment){
-        bringFragmentToFrontInFragmantManager(fragment);
+        bringFragmentToFrontInFragmentManager(fragment);
         bringViewToFront(fragment);
     }
 
-    private void bringFragmentToFrontInFragmantManager(Fragment fragment){
+    private void bringFragmentToFrontInFragmentManager(Fragment fragment){
 //        FragmentManagerImpl.moveFragmentToExpectedState
         try {
             Field field = fragment.getFragmentManager().getClass().getDeclaredField("mAdded");
@@ -230,7 +230,7 @@ class FragmentTaskManager {
             fragments.remove(fragment);
             fragments.add(fragment);
         } catch (Exception e){
-            Trace.p(getClass(), "Reorder fragment in fragmentManager fail:%s", e);
+            Log.p(getClass(), "Reorder fragment in fragmentManager fail:%s", e);
         }
     }
 
@@ -378,7 +378,7 @@ class FragmentTaskManager {
     void restoreFragmentStates() {
         if(mFragmentTasks== null || mFragmentTasks.size() == 0){
             List<Fragment> fragmentList = fragmentNav.getActivity().getSupportFragmentManager().getFragments();
-            Trace.p(TAG, "开始还原FragmentTask=>total fragments:%s", fragmentList == null ? "null" : fragmentList.size());
+            Log.p(TAG, "开始还原FragmentTask=>total fragments:%s", fragmentList == null ? "null" : fragmentList.size());
             mFragmentTasks = new SparseArray<>();
             if (fragmentList != null) {
                 for (Fragment fragment : fragmentList) {
@@ -418,7 +418,7 @@ class FragmentTaskManager {
                 }
             }
 
-            Trace.p(TAG, "还原结束");
+            Log.p(TAG, "还原结束");
             printTask();
         }
     }
@@ -429,7 +429,7 @@ class FragmentTaskManager {
 
 
     public void printTask(){
-        Trace.p(TAG, taskLog());
+        Log.p(TAG, taskLog());
     }
 
     private String taskLog() {

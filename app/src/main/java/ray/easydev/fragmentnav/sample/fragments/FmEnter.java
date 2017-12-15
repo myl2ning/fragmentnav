@@ -23,7 +23,7 @@ import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.sample.Consts;
 import ray.easydev.fragmentnav.sample.R;
 import ray.easydev.fragmentnav.sample.utils.Utils;
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 
 /**
@@ -61,8 +61,19 @@ public class FmEnter extends FnFragment implements Consts {
     }
 
     public final void startWithNewAnim(){
+        //Animation override must be called before any action
         overrideShowHideAnimThisTime(R.anim.page_insert, R.anim.page_delete);
-        startFragment(new FragmentIntent(Fm01.class).setAnim(R.anim.page_insert, R.anim.page_delete, R.anim.page_show, R.anim.page_hide));
+
+        FragmentIntent fragmentIntent = new FragmentIntent(Fm01.class)
+                .setAnim(R.anim.page_insert, R.anim.page_delete, R.anim.page_show, R.anim.page_hide);
+        startFragment(fragmentIntent);
+
+        setNextAction(
+                fragmentIntent.getExtras(),
+                FmBase.Action.START,
+                new FragmentIntent(Fm12.class)
+                        .addFlag(FragmentIntent.FLAG_NEW_TASK)
+        );
     }
 
     public final void startInNewTask(){
@@ -84,7 +95,7 @@ public class FmEnter extends FnFragment implements Consts {
         FragmentIntent intent22 = new FragmentIntent(Fm22.class);
         startFragment(intent11, intent12, intent21, intent22);
 
-        putFragmentIntentsArg(intent22.getExtras(), FmBase.Action.FINISH_MY_TASK);
+        setNextAction(intent22.getExtras(), FmBase.Action.FINISH_MY_TASK);
     }
 
 
@@ -92,13 +103,17 @@ public class FmEnter extends FnFragment implements Consts {
         FragmentIntent intent01 = new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
         FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
         FragmentIntent intent23 = new FragmentIntent(Fm23.class);
-        getFragmentNav().startFragment(this, intent01, intent21, intent23);
+        startFragment(intent01, intent21, intent23);
 
-        putFragmentIntentsArg(intent23.getExtras(), FmBase.Action.START, new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT));
+        setNextAction(
+                intent23.getExtras(),
+                FmBase.Action.START,
+                new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT)
+        );
     }
 
 
-    private void putFragmentIntentsArg(Bundle bundle, FmBase.Action action, FragmentIntent... intents){
+    private void setNextAction(Bundle bundle, FmBase.Action action, FragmentIntent... intents){
         bundle.putSerializable(KEY_ACTION, action);
         bundle.putParcelableArray(KEY_ACTION_ARG, intents);
     }
@@ -106,7 +121,7 @@ public class FmEnter extends FnFragment implements Consts {
     @Override
     public void onFragmentResult(int requestCode, int resultCode, Object data) {
         super.onFragmentResult(requestCode, resultCode, data);
-        Trace.p(getClass(), "onFragmentResult:%s, %s, %s", requestCode, resultCode, data);
+        Log.p(getClass(), "onFragmentResult:%s, %s, %s", requestCode, resultCode, data);
     }
 
 
@@ -115,7 +130,7 @@ public class FmEnter extends FnFragment implements Consts {
             Field field = getFragmentManager().getClass().getDeclaredField("mAdded");
             field.setAccessible(true);
             List<Fragment> fragments = (List<Fragment>) field.get(getFragmentManager());
-            Trace.p("mAdded", Utils.joinCollections(fragments, ", "));
+            Log.p("mAdded", Utils.joinCollections(fragments, ", "));
 
         } catch (Exception e){
 
@@ -133,7 +148,7 @@ public class FmEnter extends FnFragment implements Consts {
             Method method = getFragmentManager().getClass().getDeclaredMethod("getActiveFragments");
             method.setAccessible(true);
             List<Fragment> fragments = (List<Fragment>) method.invoke(getFragmentManager());
-            Trace.p("mActive", Utils.joinCollections(fragments, ", "));
+            Log.p("mActive", Utils.joinCollections(fragments, ", "));
         } catch (Exception e){
 
         }

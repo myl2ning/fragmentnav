@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 /**
  * Created by Ray on 2017/11/21.
@@ -172,10 +172,10 @@ public class FnFragment extends Fragment {
     private boolean mOnResumeCalled, mIsVisible;
 
     protected void onForeground(){
-        Trace.p("VIV", "[%s]onForeground", getClass().getSimpleName());
+        Log.p("VIV", "[%s]onForeground", getClass().getSimpleName());
     }
 
     protected void onBackground(){
-        Trace.p("VIV", "[%s]onBackground", getClass().getSimpleName());
+        Log.p("VIV", "[%s]onBackground", getClass().getSimpleName());
     }
 }

@@ -20,7 +20,7 @@ import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.sample.Consts;
 import ray.easydev.fragmentnav.sample.R;
 import ray.easydev.fragmentnav.sample.utils.Androids;
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 /**
  * Created by Ray on 2017/11/21.
@@ -108,7 +108,7 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
             }
         }
 
-        Trace.p("FragmentsState", sb.toString());
+        Log.p("FragmentsState", sb.toString());
         tvLog.setText(sb.toString());
     }
 

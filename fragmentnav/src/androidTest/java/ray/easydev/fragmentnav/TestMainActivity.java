@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 
 import ray.easydev.fragmentnav.fragments.Fm01;
 import ray.easydev.fragmentnav.test.R;
-import ray.easydev.fragmentnav.utils.Trace;
+import ray.easydev.fragmentnav.utils.Log;
 
 /**
  * Created by Ray on 2017/11/21.
@@ -15,7 +15,7 @@ import ray.easydev.fragmentnav.utils.Trace;
 
 public class TestMainActivity extends FnFragmentActivity implements FnActivity {
     static {
-        Trace.setLogLevel(false, 10);
+        Log.setLogLevel(false, 10);
     }
 
     public ViewGroup rootView;
