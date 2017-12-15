@@ -105,13 +105,13 @@ open class BaseFmTest {
 
         val currentFragment: Fragment
             get() {
-                val fragments = fragments
+                val fragments = fragments.filter { it != null }
                 Assert.assertTrue(message("Sys fragments' size is 0"), fragments.isNotEmpty())
                 return fragments[fragments.size - 1]
             }
 
         val fragments: List<Fragment>
-            get() = fragmentManager.fragments
+            get() = fragmentManager.fragments.filter{ it != null}
 
     }
 
@@ -145,7 +145,8 @@ open class BaseFmTest {
 
         val fragments = fragmentNav.getFragments(taskIds[taskIds.size - 1])
         Assert.assertTrue(!fragments.isEmpty())
-        Assert.assertTrue(fragments.last() === fnFragments.currentFragment && fnFragments.currentFragment === sysFragments.currentFragment)
+        Assert.assertTrue("last:${fragments.last()} fnCurrent:${fnFragments.currentFragment} sysCurrent:${sysFragments.currentFragment} ${sysFragments.currentFragment.isVisible}"
+                , fragments.last() === fnFragments.currentFragment && fnFragments.currentFragment === sysFragments.currentFragment)
     }
 
     fun checkCurrent(cls: Class<out Fragment>) {
@@ -172,7 +173,7 @@ open class BaseFmTest {
     }
 
     fun checkTopView(view: View){
-        val viewGroup = activity.findViewById<ViewGroup>(R.id.layout_main);
+        val viewGroup = activity.findViewById(R.id.layout_main) as ViewGroup
         Assert.assertTrue(view == viewGroup.getChildAt(viewGroup.childCount - 1))
     }
 

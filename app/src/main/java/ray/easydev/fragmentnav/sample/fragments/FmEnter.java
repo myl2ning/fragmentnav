@@ -51,7 +51,7 @@ public class FmEnter extends FnFragment implements Consts {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ListView listView = view.findViewById(R.id.listView);
+        ListView listView = (ListView) view.findViewById(R.id.listView);
         listView.setAdapter(new Adapter());
     }
 
@@ -179,7 +179,7 @@ public class FmEnter extends FnFragment implements Consts {
             }
 
             Item item = (Item) getItem(i);
-            TextView textView = view.findViewById(R.id.tv_text);
+            TextView textView = (TextView) view.findViewById(R.id.tv_text);
             textView.setText(item.text);
             view.setTag(item);
 

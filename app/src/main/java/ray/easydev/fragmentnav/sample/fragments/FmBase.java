@@ -20,7 +20,6 @@ import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.sample.Consts;
 import ray.easydev.fragmentnav.sample.R;
 import ray.easydev.fragmentnav.sample.utils.Androids;
-import ray.easydev.fragmentnav.utils.Log;
 
 /**
  * Created by Ray on 2017/11/21.
@@ -48,10 +47,10 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
         View childView = inflater.inflate(R.layout.fm_fn_test, container, false);
         childView.setTag(getClass().getSimpleName());
         ((TextView) childView.findViewById(R.id.tv_title)).setText(getClass().getSimpleName());
-        tvLog = childView.findViewById(R.id.tv_log);
+        tvLog = (TextView) childView.findViewById(R.id.tv_log);
         tvLog.setMovementMethod(new ScrollingMovementMethod());
 
-        Button actionBtn = childView.findViewById(R.id.test_btn);
+        Button actionBtn = (Button) childView.findViewById(R.id.test_btn);
         Action action = (Action) getArguments().getSerializable(KEY_ACTION);
         if(action != null){
             actionBtn.setText(action.text);

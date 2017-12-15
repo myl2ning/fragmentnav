@@ -515,5 +515,5 @@ class FnTest : BaseFmTest() {
 }
 
 fun waitActionPost() {
-    Thread.sleep(400);
+    Thread.sleep(800);
 }

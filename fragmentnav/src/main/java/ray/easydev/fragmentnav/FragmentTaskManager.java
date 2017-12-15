@@ -15,8 +15,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import ray.easydev.fragmentnav.utils.LogLevel;
 import ray.easydev.fragmentnav.utils.Log;
+import ray.easydev.fragmentnav.utils.LogLevel;
 
 import static ray.easydev.fragmentnav.FnUtils.INVALID_INT;
 import static ray.easydev.fragmentnav.FnUtils.criticalError;
@@ -217,24 +217,29 @@ class FragmentTaskManager {
     }
 
     private void doBring(Fragment fragment){
-        bringFragmentToFrontInFragmentManager(fragment);
-        bringViewToFront(fragment);
+        syncFragmentState(fragment);
+        syncFragmentViewState(fragment);
     }
 
-    private void bringFragmentToFrontInFragmentManager(Fragment fragment){
+    private void syncFragmentState(Fragment fragment){
 //        FragmentManagerImpl.moveFragmentToExpectedState
         try {
-            Field field = fragment.getFragmentManager().getClass().getDeclaredField("mAdded");
-            field.setAccessible(true);
-            List<Fragment> fragments = (List<Fragment>) field.get(fragment.getFragmentManager());
-            fragments.remove(fragment);
-            fragments.add(fragment);
+            bringToListFront(fragment, "mAdded");
+            bringToListFront(fragment, "mActive");
         } catch (Exception e){
             Log.p(getClass(), "Reorder fragment in fragmentManager fail:%s", e);
         }
     }
 
-    private void bringViewToFront(Fragment fragment) {
+    private void bringToListFront(Fragment fragment, String listFieldName) throws Exception {
+        Field field = fragment.getFragmentManager().getClass().getDeclaredField(listFieldName);
+        field.setAccessible(true);
+        List<Fragment> fragments = (List<Fragment>) field.get(fragment.getFragmentManager());
+        fragments.remove(fragment);
+        fragments.add(fragment);
+    }
+
+    private void syncFragmentViewState(Fragment fragment) {
         final View view = fragment.getView();
         if(view != null){
             ViewGroup viewGroup = (ViewGroup) view.getParent();

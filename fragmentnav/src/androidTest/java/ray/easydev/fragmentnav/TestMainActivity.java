@@ -23,7 +23,7 @@ public class TestMainActivity extends FnFragmentActivity implements FnActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        rootView = findViewById(R.id.layout_main);
+        rootView = (ViewGroup) findViewById(R.id.layout_main);
     }
 
     @Override
