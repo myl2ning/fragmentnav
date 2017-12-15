@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import ray.easydev.fragmentnav.FnFragment;
@@ -84,6 +85,19 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
         return childView;
     }
 
+    @Override
+    protected void onForeground() {
+        super.onForeground();
+        if(getView() != null){
+            getView().post(new Runnable() {
+                @Override
+                public void run() {
+                    showFragmentState();
+                }
+            });
+        }
+    }
+
     private void openPermissionSettnig(){
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -94,7 +108,7 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
     }
 
     protected void showFragmentState(){
-        List<Fragment> fragmentList = getFragmentManager().getFragments();
+        List<Fragment> fragmentList = getFragmentsInFragmentManager();
         StringBuilder sb = new StringBuilder("ViewsCount:").append(((ViewGroup) getActivity().findViewById(R.id.layout_main)).getChildCount());
         sb.append(" FragmentsSize:").append(fragmentSize());
         for (Fragment fragment : fragmentList) {
@@ -108,6 +122,16 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
         }
 
         tvLog.setText(sb.toString());
+    }
+
+    private List<Fragment> getFragmentsInFragmentManager(){
+        try {
+            Field field = getFragmentManager().getClass().getDeclaredField("mAdded");
+            field.setAccessible(true);
+            return (List<Fragment>) field.get(getFragmentManager());
+        } catch (Exception e){
+            return getFragmentManager().getFragments();
+        }
     }
 
 
