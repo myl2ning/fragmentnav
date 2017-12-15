@@ -18,7 +18,6 @@ import java.util.List;
 import ray.easydev.fragmentnav.FnFragment;
 import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.sample.Consts;
-import ray.easydev.fragmentnav.sample.MainActivity;
 import ray.easydev.fragmentnav.sample.R;
 import ray.easydev.fragmentnav.sample.utils.Androids;
 import ray.easydev.fragmentnav.utils.Trace;
@@ -97,7 +96,7 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
 
     protected void showFragmentState(){
         List<Fragment> fragmentList = getFragmentManager().getFragments();
-        StringBuilder sb = new StringBuilder("ViewsCount:").append(getActualActivity().rootView.getChildCount());
+        StringBuilder sb = new StringBuilder("ViewsCount:").append(((ViewGroup) getActivity().findViewById(R.id.layout_main)).getChildCount());
         sb.append(" FragmentsSize:").append(fragmentSize());
         for (Fragment fragment : fragmentList) {
             if(fragment != null){
@@ -177,11 +176,6 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
 
             getFragmentNav().finishTasks(ints);
         }
-    }
-
-
-    public MainActivity getActualActivity(){
-        return (MainActivity) getActivity();
     }
 
     @Override

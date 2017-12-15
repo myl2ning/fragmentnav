@@ -26,6 +26,7 @@ public class MainActivity extends FnFragmentActivity implements FnActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        Trace.p(getClass(), "Has restore data:%s", (savedInstanceState != null));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         rootView = (ViewGroup) findViewById(R.id.layout_main);
@@ -38,6 +39,12 @@ public class MainActivity extends FnFragmentActivity implements FnActivity {
         }
 
         Trace.p(getClass(), sb.toString());
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("Hello", "World");
     }
 
     @Override

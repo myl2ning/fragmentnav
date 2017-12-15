@@ -72,7 +72,6 @@ public class FragmentIntent implements Parcelable {
 
         invokerId = in.readString();
         tag = in.readString();
-        extras = in.readBundle(CREATOR.getClass().getClassLoader());
     }
 
     public static final Creator<FragmentIntent> CREATOR = new Creator<FragmentIntent>() {
@@ -196,6 +195,10 @@ public class FragmentIntent implements Parcelable {
         return extras;
     }
 
+    void setExtras(Bundle extras){
+        this.extras = extras;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -214,7 +217,6 @@ public class FragmentIntent implements Parcelable {
 
         dest.writeString(getInvokerId());
         dest.writeString(getTag());
-        dest.writeBundle(extras);
     }
 
     public void write(Bundle bundle){

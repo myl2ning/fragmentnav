@@ -383,6 +383,7 @@ class FragmentTaskManager {
             if (fragmentList != null) {
                 for (Fragment fragment : fragmentList) {
                     if (fragment instanceof FnFragment) {
+                        FnFragment fnFragment = (FnFragment) fragment;
                         Bundle bundle = safeGetArguments((FnFragment) fragment);
                         int taskId = bundle.getInt(_ARG_TASK_ID, -1);
                         if (taskId >= 0) {
@@ -392,7 +393,8 @@ class FragmentTaskManager {
                                 mFragmentTasks.put(taskId, task);
                             }
 
-                            task.add((FnFragment) fragment);
+                            fnFragment.getIntent().setExtras(bundle);
+                            task.add(fnFragment);
                         }
                     }
                 }

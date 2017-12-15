@@ -8,7 +8,7 @@ xmlns:tools="http://schemas.android.com/tools">
 
     <uses-library android:name="android.test.runner" />
 
-    <activity android:name=".MainActivity"/>
+    <activity android:name=".TestMainActivity"/>
 </application>
 
 </manifest>

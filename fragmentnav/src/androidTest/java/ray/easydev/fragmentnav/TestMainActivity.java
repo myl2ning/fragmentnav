@@ -13,7 +13,7 @@ import ray.easydev.fragmentnav.utils.Trace;
  * Created by Ray on 2017/11/21.
  */
 
-public class MainActivity extends FnFragmentActivity implements FnActivity {
+public class TestMainActivity extends FnFragmentActivity implements FnActivity {
     static {
         Trace.setLogLevel(false, 10);
     }

@@ -520,9 +520,7 @@ class FragmentNavImpl implements FragmentNav {
 
     public void saveState(Bundle bundle) {
         mFragmentTask.saveFragmentStates();
-
         mIsActivitySavedInstanceState = true;
-
         Trace.p(TAG, "Save state done");
     }
 

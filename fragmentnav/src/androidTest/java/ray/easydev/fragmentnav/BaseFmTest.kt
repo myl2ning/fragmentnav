@@ -24,7 +24,7 @@ open class BaseFmTest {
     @Rule
     @JvmField
     var mActivityRule = ActivityTestRule(
-            MainActivity::class.java)
+            TestMainActivity::class.java)
 
     lateinit var activity: FragmentActivity
         private set
