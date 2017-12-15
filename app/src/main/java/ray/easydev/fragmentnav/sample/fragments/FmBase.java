@@ -108,7 +108,6 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
             }
         }
 
-        Log.p("FragmentsState", sb.toString());
         tvLog.setText(sb.toString());
     }
 
