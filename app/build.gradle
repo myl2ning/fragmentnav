@@ -2,48 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 
-apply plugin: 'jacoco'
-
-task jacocoTestReport(type: JacocoReport) {//, group: 'verification', dependsOn: "connectedDebugAndroidTest") {
-    group = "Reporting"
-    description = "Generate Jacoco coverage reports after running tests."
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-
-    def pjDir = "${project.rootProject.projectDir}/fragmentnav"
-    sourceDirectories = files(["${pjDir}/src/main/java"])
-    classDirectories = fileTree(
-            dir: "${pjDir}/build/intermediates/classes/debug/ray/easydev/fragmentnav",
-//            includes: ["**/AccountManager.class"]
-    )
-
-
-//    additionalSourceDirs = files(["D:/Dev/Android/Netease/Projects/ursSdk-android/LoginSDK/sdklibrary/src/main/java"]);
-//    additionalClassDirs = fileTree(
-//            dir: "D:/Dev/Android/Netease/Projects/ursSdk-android/LoginSDK/sdklibrary/build/intermediates/classes/debug",
-//            includes: ['com/netease/loginapi/http/**.class'],
-//    )
-//
-//    additionalClassDirs = zipTree("libs/urs_android_sdk_4am.jar").matching {
-//        include "com/netease/loginapi/http/**.class"
-//    }
-
-    executionData = fileTree(
-            dir: "$buildDir/outputs/code-coverage/connected/",
-            includes: ["*coverage.ec"]
-    )
-}
-
 android {
-    compileSdkVersion 26
+    compileSdkVersion Integer.parseInt(project.COMPILE_SDK_VERSION)
     defaultConfig {
         applicationId "ray.easydev.fragmentnav.sample"
-        minSdkVersion 15
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion Integer.parseInt(project.MIN_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(project.TARGET_SDK_VERSION)
+        versionCode Integer.parseInt(project.VERSION_CODE)
+        versionName project.VERSION_NAME
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
