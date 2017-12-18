@@ -60,14 +60,14 @@ class Op implements Parcelable, Serializable {
     private void initAnim(FnFragment fragment) {
         FragmentIntent intent = fragment.getIntent();
         if (!hasBit(intent.getFlags(), FragmentIntent.FLAG_NO_ANIMATION)) {
-            boolean hasEnterAnim = !hasBit(intent.getFlags(), FragmentIntent.FLAG_NO_ENTER_ANIMATION), hasExitAnim = !hasBit(intent.getFlags(), FragmentIntent.FLAG_NO_EXIT_ANIMATION);
+            boolean hasStartAnim = !hasBit(intent.getFlags(), FragmentIntent.FLAG_NO_START_ANIMATION), hasFinishAnim = !hasBit(intent.getFlags(), FragmentIntent.FLAG_NO_FINISH_ANIMATION);
 
             switch (op) {
                 case OP_ADD:
-                    setAnim(hasEnterAnim ? intent.getInAnim() : 0, 0);
+                    setAnim(hasStartAnim ? intent.getInAnim() : 0, 0);
                     break;
                 case OP_REMOVE:
-                    if (fragment.isVisible() && hasExitAnim) {
+                    if (fragment.isVisible() && hasFinishAnim) {
                         setAnim(0, intent.getOutAnim());
                     }
                     break;

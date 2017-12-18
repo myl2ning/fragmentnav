@@ -13,11 +13,11 @@ import java.io.Serializable;
  */
 
 public class FragmentIntent implements Parcelable {
-    public final static int FLAG_NO_ENTER_ANIMATION = Intent.FLAG_ACTIVITY_NO_USER_ACTION;
-    public final static int FLAG_NO_EXIT_ANIMATION = Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
+    public final static int FLAG_NO_START_ANIMATION = Intent.FLAG_ACTIVITY_NO_USER_ACTION;
+    public final static int FLAG_NO_FINISH_ANIMATION = Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
     public final static int FLAG_NO_ANIMATION = Intent.FLAG_ACTIVITY_NO_ANIMATION;
     public final static int FLAG_NEW_TASK = Intent.FLAG_ACTIVITY_NEW_TASK;
-    public final static int FLAG_BROUGHT_TO_FRONT = Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT;
+    public final static int FLAG_BRING_TO_FRONT = Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT;
 
     /**
      * android.support.v4.FragmentManager will remove the fragment's view immediately after start the remove animation, this will cause the removed view be rendered in the top window,

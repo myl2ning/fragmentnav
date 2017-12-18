@@ -2,6 +2,8 @@ package ray.easydev.fragmentnav
 
 import android.app.Instrumentation
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.support.test.InstrumentationRegistry
 import android.support.test.rule.ActivityTestRule
 import android.support.v4.app.Fragment
@@ -9,6 +11,7 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.app.FragmentManager
 import android.view.View
 import android.view.ViewGroup
+import junit.framework.Assert.assertTrue
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -41,7 +44,7 @@ open class BaseFmTest {
     lateinit var fragmentNav: FragmentNav
 
     lateinit var instrumentation : Instrumentation
-
+    lateinit var mHandler : Handler
     @Before
     fun setup() {
         context = InstrumentationRegistry.getTargetContext()
@@ -52,6 +55,8 @@ open class BaseFmTest {
         fragmentNav = ((activity as FnActivity).fragmentNav)
         fnFragments = FnFragments(fragmentNav)
         sysFragments = SysFragments(fragmentManager)
+
+        mHandler = Handler(Looper.getMainLooper())
     }
 
     fun<T : FnFragment> current() : T {
@@ -63,7 +68,14 @@ open class BaseFmTest {
     }
 
     fun<T : FnFragment> startFragmentKt(vararg intents: FragmentIntent): T {
-        return fnFragments.currentFragment.startFragment(*intents) as T
+//        return (fnFragments.currentFragment.startFragment(*intents) as T).apply {
+//            checkAnimationState(current<T>()::class.java, intents.last().targetCls)
+//        }
+//
+        return fnFragments.currentFragment.run {
+            checkAnimationState(this::class.java, intents.last().targetCls)
+            startFragment(*intents)
+        } as T
     }
 
     fun finishKt(){
@@ -173,8 +185,18 @@ open class BaseFmTest {
     }
 
     fun checkTopView(view: View){
-        val viewGroup = activity.findViewById(R.id.layout_main) as ViewGroup
+        val viewGroup = activity.findViewById<ViewGroup>(R.id.layout_main)
         Assert.assertTrue(view == viewGroup.getChildAt(viewGroup.childCount - 1))
+    }
+
+    fun checkAnimationState(cls: Class<out Fragment>, cls1: Class<out Fragment>){
+        mHandler.postDelayed({
+            val result = sysFragments.fragments.filter {
+                (it.view?.animation?.hasStarted() ?: false) && !((it.view?.animation?.hasEnded()) ?: true)
+            }.map { it::class.java }
+            assertTrue(result.size == 2 && result.contains(cls) && result.contains(cls1))
+        }, 50)
+
     }
 
     companion object {

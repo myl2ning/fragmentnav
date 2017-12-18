@@ -1,13 +1,16 @@
 package ray.easydev.fragmentnav.sample.fragments;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -42,6 +45,28 @@ public class FmEnter extends FnFragment implements Consts {
         items.add(new Item("bringToFront"));
     }
 
+    private static Handler mHandler;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initHandler();
+    }
+
+    private void initHandler(){
+        if(mHandler != null) return;
+        mHandler = new Handler();
+
+//        try {
+//            Field field = FragmentActivity.class.getDeclaredField("mHandler");
+//            field.setAccessible(true);
+//            mHandler = (Handler) field.get(getActivity());
+//
+//        } catch (Exception e) {
+//            mHandler = new Handler();
+//        }
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -56,8 +81,12 @@ public class FmEnter extends FnFragment implements Consts {
     }
 
     public final void startFragmentWithExtras(){
-        FragmentIntent fragmentIntent = new FragmentIntent(Fm01.class).putExtra(KEY_STRING, "StringExtra");
+        //Create a fragment intent with a string extra
+        FragmentIntent fragmentIntent = new FragmentIntent(Fm01.class).
+                putExtra(KEY_STRING, "StringExtra").addFlag(FragmentIntent.FLAG_NO_ANIMATION);
+        //Start the fragment
         startFragment(fragmentIntent);
+        checkAnimRunningState();
     }
 
     public final void startWithNewAnim(){
@@ -74,6 +103,8 @@ public class FmEnter extends FnFragment implements Consts {
                 new FragmentIntent(Fm12.class)
                         .addFlag(FragmentIntent.FLAG_NEW_TASK)
         );
+
+        checkAnimRunningState();
     }
 
     public final void startInNewTask(){
@@ -83,9 +114,10 @@ public class FmEnter extends FnFragment implements Consts {
     public final void batchStart(){
         FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
         FragmentIntent intent12 = new FragmentIntent(Fm12.class);
-        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK).addFlag(FragmentIntent.FLAG_NO_ANIMATION);
 
         startFragment(intent11, intent12, intent21);
+        checkAnimRunningState();
     }
 
     public void testFinishTask(){
@@ -96,6 +128,7 @@ public class FmEnter extends FnFragment implements Consts {
         startFragment(intent11, intent12, intent21, intent22);
 
         setNextAction(intent22.getExtras(), FmBase.Action.FINISH_MY_TASK);
+        checkAnimRunningState();
     }
 
 
@@ -108,7 +141,7 @@ public class FmEnter extends FnFragment implements Consts {
         setNextAction(
                 intent23.getExtras(),
                 FmBase.Action.START,
-                new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT)
+                new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_BRING_TO_FRONT).addFlag(FragmentIntent.FLAG_NO_ANIMATION)
         );
     }
 
@@ -152,6 +185,28 @@ public class FmEnter extends FnFragment implements Consts {
         } catch (Exception e){
 
         }
+    }
+
+    void checkAnimRunningState(){
+        checkAnimRunningState(getFragmentManager());
+    }
+
+    public static void checkAnimRunningState(final FragmentManager fragmentManager){
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                List<Fragment> fragments = fragmentManager.getFragments();
+                for (Fragment fragment : fragments) {
+                    if(fragment != null && fragment.getView() != null){
+                        Animation animation = fragment.getView().getAnimation();
+                        Log.p(fragment.getClass(), "Anim is running:%s" , animation != null && animation.hasStarted() && !animation.hasEnded());
+                    } else {
+                        Log.p(fragment == null ? "NULL_FRAGMENT" : fragment.getClass().getSimpleName(), "View is null" );
+                    }
+                }
+
+            }
+        }, 50);
     }
 
     class Adapter extends BaseAdapter implements View.OnClickListener {

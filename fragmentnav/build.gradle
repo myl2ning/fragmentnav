@@ -22,7 +22,7 @@ android {
 
         debug {
             // output coverage with ./gradlew clean build createDebugCoverageReport
-            testCoverageEnabled false
+            testCoverageEnabled true
         }
     }
 

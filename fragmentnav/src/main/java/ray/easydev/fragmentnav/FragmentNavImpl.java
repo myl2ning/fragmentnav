@@ -3,7 +3,6 @@ package ray.easydev.fragmentnav;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -14,14 +13,13 @@ import android.text.TextUtils;
 import android.util.SparseArray;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import ray.easydev.fragmentnav.utils.LogLevel;
 import ray.easydev.fragmentnav.utils.Log;
+import ray.easydev.fragmentnav.utils.LogLevel;
 
 import static ray.easydev.fragmentnav.FnUtils.INVALID_INT;
 import static ray.easydev.fragmentnav.FnUtils.criticalError;
@@ -35,7 +33,6 @@ class FragmentNavImpl implements FragmentNav {
     final static Class TAG = FragmentNavImpl.class;
 
     private FragmentActivity mActivity;
-    private Handler mHandler;
 
     private ArrayList<PendingOps> mPendingOps = new ArrayList<>();
     private ArrayList<Runnable> mPendingCalls = new ArrayList<>();
@@ -50,19 +47,6 @@ class FragmentNavImpl implements FragmentNav {
         mIsRestoring = savedInstanceState != null;
         mFragmentTask = new FragmentTaskManager(this, containerViewID);
         mActivity = activity;
-        initHandler(activity);
-    }
-
-    private void initHandler(FragmentActivity activity) {
-        try {
-            Field field = FragmentActivity.class.getDeclaredField("mHandler");
-            field.setAccessible(true);
-            mHandler = (Handler) field.get(activity);
-
-            Log.p(getClass(), "Init handler:%s", mHandler != null);
-        } catch (Exception e) {
-            mHandler = new Handler();
-        }
     }
 
     public @NonNull
@@ -112,6 +96,12 @@ class FragmentNavImpl implements FragmentNav {
             }
         }
 
+        Op lastOp = findOp(ops, finalFragment);
+        if(lastOp != null && lastOp.enterAnim == 0){
+            Op invokerOp = findOp(ops, invoker);
+            if(invokerOp != null) invokerOp.exitAnim = 0;
+        }
+
         printOps(ops);
         tryCommit(ops);
         return finalFragment;
@@ -127,7 +117,7 @@ class FragmentNavImpl implements FragmentNav {
 
         FnFragment targetFragment;
         final int tFlag = intent.getFlags();
-        if (!hasBit(tFlag, FragmentIntent.FLAG_BROUGHT_TO_FRONT)
+        if (!hasBit(tFlag, FragmentIntent.FLAG_BRING_TO_FRONT)
                 || (targetFragment = bringToFront(cls, ops)) == null) {
 
             try {
@@ -334,6 +324,16 @@ class FragmentNavImpl implements FragmentNav {
         return !mIsActivitySavedInstanceState && !mIsRestoring;
     }
 
+    private @Nullable Op findOp(@NonNull List<Op> ops, FnFragment fragment){
+        for (Op op : ops) {
+            if(op.fragment == fragment){
+                return op;
+            }
+        }
+
+        return null;
+    }
+
     private Op add(List<Op> ops, FnFragment fragment) {
         Op op = new Op(Op.OP_ADD, fragment);
         ops.add(op);
@@ -535,12 +535,6 @@ class FragmentNavImpl implements FragmentNav {
             mIsRestoring = false;
 
         }
-    }
-
-    @NonNull
-    @Override
-    public Handler getHandler() {
-        return mHandler;
     }
 
     private Application.ActivityLifecycleCallbacks activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {

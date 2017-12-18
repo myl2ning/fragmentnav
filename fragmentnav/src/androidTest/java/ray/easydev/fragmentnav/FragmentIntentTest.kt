@@ -23,7 +23,7 @@ class FragmentIntentTest : BaseFmTest() {
 
         FragmentIntent(Fm01::class.java).run {
             flags = FragmentIntent.FLAG_NEW_TASK
-            addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT)
+            addFlag(FragmentIntent.FLAG_BRING_TO_FRONT)
             tag = "This is tag"
             invokerId = "invokerId"
             setAnim(123, 124, 125, 126)
@@ -43,7 +43,7 @@ class FragmentIntentTest : BaseFmTest() {
             FragmentIntent.CREATOR.createFromParcel(parcel).run {
                 //because extras == fragment.argument and argument will be saved by fragment, so extras will not be saved into bundle
                 extras = this@xx
-                assertTrue(flags == (FragmentIntent.FLAG_NEW_TASK or FragmentIntent.FLAG_BROUGHT_TO_FRONT))
+                assertTrue(flags == (FragmentIntent.FLAG_NEW_TASK or FragmentIntent.FLAG_BRING_TO_FRONT))
                 assertTrue("This is tag" == tag)
                 assertTrue("invokerId" == invokerId)
                 assertTrue(inAnim == 123)
@@ -73,7 +73,7 @@ class FragmentIntentTest : BaseFmTest() {
     fun testSetDefault(){
         FragmentIntent.getDefault().apply {
             setAnim(123, 124, 125, 126)
-            flags = (FragmentIntent.FLAG_NEW_TASK or FragmentIntent.FLAG_BROUGHT_TO_FRONT)
+            flags = (FragmentIntent.FLAG_NEW_TASK or FragmentIntent.FLAG_BRING_TO_FRONT)
             putExtra("StringExtra", "HelloFn")
             putExtra("LongExtra", 1024L)
         }.run {

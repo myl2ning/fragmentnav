@@ -109,7 +109,7 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
 
     protected void showFragmentState(){
         List<Fragment> fragmentList = getFragmentsInFragmentManager();
-        StringBuilder sb = new StringBuilder("ViewsCount:").append(((ViewGroup) getActivity().findViewById(R.id.layout_main)).getChildCount());
+        StringBuilder sb = new StringBuilder("ViewsCount:").append(((ViewGroup) getActivity().findViewById(R.id.fragment_container)).getChildCount());
         sb.append(" FragmentsSize:").append(fragmentSize());
         for (Fragment fragment : fragmentList) {
             if(fragment != null){

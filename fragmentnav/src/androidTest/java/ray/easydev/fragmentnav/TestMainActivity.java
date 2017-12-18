@@ -39,7 +39,7 @@ public class TestMainActivity extends FnFragmentActivity implements FnActivity {
     @Override
     public FragmentIntent[] getStartIntents() {
         return new FragmentIntent[]{
-                new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NO_ENTER_ANIMATION)
+                new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NO_START_ANIMATION)
         };
     }
 }

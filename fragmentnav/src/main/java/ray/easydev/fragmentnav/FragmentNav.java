@@ -1,7 +1,6 @@
 package ray.easydev.fragmentnav;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -46,6 +45,4 @@ public interface FragmentNav {
     void saveState(Bundle bundle);
 
     void restoreState(Bundle bundle);
-
-    @NonNull Handler getHandler();
 }

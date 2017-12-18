@@ -19,4 +19,9 @@ public class Fm01 extends FmBase {
         }
     }
 
+    @Override
+    public void onClick(View v) {
+        super.onClick(v);
+
+    }
 }

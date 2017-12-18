@@ -133,7 +133,7 @@ public class FnFragment extends Fragment {
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
 //        Trace.p(getClass(), "onHiddenChanged:%s", hidden);
-        if(mOnResumeCalled) onGroundChanged(!hidden);
+        if(mOnResumeCalled) onRunStateChanged(!hidden);
     }
 
 
@@ -149,17 +149,17 @@ public class FnFragment extends Fragment {
         mOnResumeCalled = true;
 //        Trace.p(getClass(), "onResume  isVisible:%s, isHidden:%s", isVisible(), isHidden());
 
-        if(isAdded() && !isHidden() && getView() != null && getView().getVisibility() == View.VISIBLE) onGroundChanged(true);
+        if(isAdded() && !isHidden() && getView() != null && getView().getVisibility() == View.VISIBLE) onRunStateChanged(true);
     }
 
     @Override
     public void onPause() {
         super.onPause();
 //        Trace.p(getClass(), "onPause  isVisible:%s, isHidden:%s", isVisible(), isHidden());
-        onGroundChanged(false);
+        onRunStateChanged(false);
     }
 
-    private void onGroundChanged(boolean visible){
+    private void onRunStateChanged(boolean visible){
         if(visible && !mIsVisible){
             mIsVisible = true;
             onForeground();

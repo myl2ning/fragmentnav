@@ -259,7 +259,7 @@ class FnTest : BaseFmTest() {
             synchronized(FnTest::class.java){
                 activity.runOnUiThread {
                     //BringToFront action will update the views' order, so must run on ui thread
-                    startFragmentKt<Fm12>(FragmentIntent(Fm12::class.java).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT))
+                    startFragmentKt<Fm12>(FragmentIntent(Fm12::class.java).addFlag(FragmentIntent.FLAG_BRING_TO_FRONT))
                 }
             }
             waitActionPost()
@@ -294,7 +294,7 @@ class FnTest : BaseFmTest() {
             synchronized(FnTest::class.java){
                 activity.runOnUiThread {
                     //BringToFront action will update the views' order, so must run on ui thread
-                    startFragmentKt<Fm02>(FragmentIntent(Fm02::class.java).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT))
+                    startFragmentKt<Fm02>(FragmentIntent(Fm02::class.java).addFlag(FragmentIntent.FLAG_BRING_TO_FRONT))
                 }
             }
             waitActionPost()
@@ -333,7 +333,7 @@ class FnTest : BaseFmTest() {
                 activity.runOnUiThread {
                     //BringToFront action will update the views' order, so must run on ui thread
                     startFragmentKt<Fm02>(FragmentIntent(Fm02::class.java)
-                            .addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT or FragmentIntent.FLAG_NEW_TASK))
+                            .addFlag(FragmentIntent.FLAG_BRING_TO_FRONT or FragmentIntent.FLAG_NEW_TASK))
                 }
             }
             waitActionPost()
@@ -361,7 +361,7 @@ class FnTest : BaseFmTest() {
             synchronized(FnTest::class.java){
                 activity.runOnUiThread {
                     //Bring to front will update the views' order, so must run on ui thread
-                    startFragmentKt<Fm12>(FragmentIntent(Fm12::class.java).addFlag(FragmentIntent.FLAG_BROUGHT_TO_FRONT))
+                    startFragmentKt<Fm12>(FragmentIntent(Fm12::class.java).addFlag(FragmentIntent.FLAG_BRING_TO_FRONT))
                 }
             }
 
@@ -383,6 +383,7 @@ class FnTest : BaseFmTest() {
         waitActionPost()
 
         assertTrue(fragmentNav.findFragment<Fm02>(fm02.fnId) === fm02)
+        assertTrue(fragmentNav.findFragment<Fm02>("1234") === null)
     }
 
     @Test
@@ -493,6 +494,48 @@ class FnTest : BaseFmTest() {
     }
 
     @Test
+    fun testCommitPendingCalls(){
+        startFragmentKt<Fm13>(
+                FragmentIntent(Fm02::class.java),
+                FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm12::class.java),
+                FragmentIntent(Fm13::class.java)
+
+        ).apply {
+            waitActionPost()
+        }.run {
+            (fragmentNav as FragmentNavImpl)
+                    .apply {
+                        //Test finishTask
+                        mIsRestoring = true
+                        finishTaskKt()
+                        waitActionPost()
+                        //Upon actions should not be commit
+                        assertTrue(sysFragments.fragments.size == 5)
+                        checkState(2, Fm13::class.java)
+
+                        onActivityResumed()
+                        waitActionPost()
+                        assertTrue(sysFragments.fragments.size == 2)
+                        checkState(1, Fm02::class.java)
+                    }
+        }.run {
+            //Test finish
+            mIsRestoring = true
+            finishKt()
+            waitActionPost()
+            assertTrue(sysFragments.fragments.size == 2)
+            checkState(1, Fm02::class.java)
+
+            onActivityResumed()
+            waitActionPost()
+            checkState(1, Fm01::class.java)
+        }
+
+
+    }
+
+    @Test
     fun testSaveAndRestoreOp(){
         val parcel = Parcel.obtain()
         Op().apply {
@@ -511,6 +554,28 @@ class FnTest : BaseFmTest() {
             }
         }
     }
+
+    //Test request code info save and restore
+    @Test
+    fun testRequestCodeInfoSR(){
+        //Test parcel write and read
+        val parcel = Parcel.obtain()
+        FragmentNavImpl.RequestCodeInfo("invokerId", 123).apply {
+            writeToParcel(parcel, describeContents())
+            parcel.setDataPosition(0)
+        }.run {
+            assertTrue(FragmentNavImpl.RequestCodeInfo.CREATOR.createFromParcel(parcel) == this)
+        }
+
+        //Test bundle write and read
+        val bundle = Bundle()
+        FragmentNavImpl.RequestCodeInfo("invokerId", 123).apply {
+            writeTo(bundle)
+        }.run {
+            assertTrue(FragmentNavImpl.RequestCodeInfo.readFrom(bundle) == this)
+        }
+    }
+
 
 }
 
