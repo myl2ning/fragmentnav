@@ -45,4 +45,5 @@ public interface FragmentNav {
     void saveState(Bundle bundle);
 
     void restoreState(Bundle bundle);
+
 }

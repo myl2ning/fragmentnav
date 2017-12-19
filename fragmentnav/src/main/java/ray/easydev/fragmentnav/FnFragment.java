@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
-import ray.easydev.fragmentnav.utils.Log;
+import ray.easydev.fragmentnav.log.Log;
 
 /**
  * Created by Ray on 2017/11/21.

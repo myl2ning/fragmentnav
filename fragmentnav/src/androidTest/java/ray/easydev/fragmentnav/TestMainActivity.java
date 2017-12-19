@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 
 import ray.easydev.fragmentnav.fragments.Fm01;
 import ray.easydev.fragmentnav.test.R;
-import ray.easydev.fragmentnav.utils.Log;
+import ray.easydev.fragmentnav.log.Log;
 
 /**
  * Created by Ray on 2017/11/21.

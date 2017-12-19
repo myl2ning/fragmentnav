@@ -1,4 +1,4 @@
-package ray.easydev.fragmentnav.utils;
+package ray.easydev.fragmentnav.log;
 
 import android.app.Activity;
 import android.app.ActivityManager;

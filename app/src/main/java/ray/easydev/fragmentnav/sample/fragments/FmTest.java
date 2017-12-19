@@ -13,7 +13,7 @@ import java.util.List;
 
 import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.sample.utils.Utils;
-import ray.easydev.fragmentnav.utils.Log;
+import ray.easydev.fragmentnav.log.Log;
 
 
 /**

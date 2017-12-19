@@ -15,8 +15,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import ray.easydev.fragmentnav.utils.Log;
-import ray.easydev.fragmentnav.utils.LogLevel;
+import ray.easydev.fragmentnav.log.Log;
+import ray.easydev.fragmentnav.log.LogLevel;
 
 import static ray.easydev.fragmentnav.FnUtils.INVALID_INT;
 import static ray.easydev.fragmentnav.FnUtils.criticalError;
@@ -76,7 +76,12 @@ class FragmentTaskManager {
                 continue;
             }
 
-            setCustomAnimations(transaction, op.enterAnim, op.exitAnim);
+            if(!fragmentNav.isReady()){
+                op.clearAnim();
+            }
+
+            transaction.setCustomAnimations(op.enterAnim, op.exitAnim);
+
             switch (op.op) {
                 case Op.OP_ADD: {
                     ArrayList<FnFragment> task;
@@ -208,13 +213,6 @@ class FragmentTaskManager {
         return fragmentNav.getActivity().getSupportFragmentManager().beginTransaction();
     }
 
-    private void setCustomAnimations(FragmentTransaction transaction, int enter, int exit) {
-        if (!fragmentNav.isReady()) {
-            transaction.setCustomAnimations(0, 0);
-        } else {
-            transaction.setCustomAnimations(enter, exit);
-        }
-    }
 
     private void doBring(Fragment fragment){
         syncFragmentState(fragment);

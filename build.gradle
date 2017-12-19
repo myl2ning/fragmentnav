@@ -13,6 +13,9 @@ buildscript {
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
     }
 }
 
@@ -38,8 +41,8 @@ ext {
     min_sdk_version = 15
     target_sdk_version = 26
     compile_sdk_version = 26
-    version_code = 121501
-    version_name = '1.0.0'
+    version_code = 121901
+    version_name = '0.1.0'
 }
 
 

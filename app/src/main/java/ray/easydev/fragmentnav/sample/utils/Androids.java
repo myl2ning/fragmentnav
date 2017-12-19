@@ -25,7 +25,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-import ray.easydev.fragmentnav.utils.Log;
+import ray.easydev.fragmentnav.log.Log;
 
 import static android.content.pm.PackageManager.GET_SERVICES;
 

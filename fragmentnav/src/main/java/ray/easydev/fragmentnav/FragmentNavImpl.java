@@ -18,8 +18,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import ray.easydev.fragmentnav.utils.Log;
-import ray.easydev.fragmentnav.utils.LogLevel;
+import ray.easydev.fragmentnav.log.Log;
+import ray.easydev.fragmentnav.log.LogLevel;
 
 import static ray.easydev.fragmentnav.FnUtils.INVALID_INT;
 import static ray.easydev.fragmentnav.FnUtils.criticalError;
@@ -31,7 +31,6 @@ import static ray.easydev.fragmentnav.FnUtils.hasBit;
 @LogLevel(LogLevel.V)
 class FragmentNavImpl implements FragmentNav {
     final static Class TAG = FragmentNavImpl.class;
-
     private FragmentActivity mActivity;
 
     private ArrayList<PendingOps> mPendingOps = new ArrayList<>();
@@ -118,7 +117,7 @@ class FragmentNavImpl implements FragmentNav {
         FnFragment targetFragment;
         final int tFlag = intent.getFlags();
         if (!hasBit(tFlag, FragmentIntent.FLAG_BRING_TO_FRONT)
-                || (targetFragment = bringToFront(cls, ops)) == null) {
+                || (targetFragment = bringToFront(cls,intent, ops)) == null) {
 
             try {
                 targetFragment = (FnFragment) cls.newInstance();
@@ -140,20 +139,20 @@ class FragmentNavImpl implements FragmentNav {
 //                }
             }
         } else {
-            targetFragment.getIntent().setFlags(intent.getFlags());
             targetFragment.onNewIntent(intent);
         }
 
         return targetFragment;
     }
 
-    private FnFragment bringToFront(Class cls, List<Op> ops) {
+    private FnFragment bringToFront(Class cls, FragmentIntent intent, List<Op> ops) {
         if (getCurrentFragment() == null || getCurrentFragment().getClass() == cls) {
             return getCurrentFragment();
         }
 
         FnFragment fragment = mFragmentTask.findFragment(cls);
         if (fragment != null) {
+            fragment.getIntent().setFlags(intent.getFlags());
             bringToFront(ops, fragment);
             hide(ops, getCurrentFragment());
         }
@@ -365,14 +364,20 @@ class FragmentNavImpl implements FragmentNav {
         return op;
     }
 
-
     private boolean tryCommit(ArrayList<Op> ops) {
         if (!isReady()) {
             Log.p(TAG, "Called after onSavedInstance or is during restore, save ops");
             mPendingOps.add(new PendingOps(ops));
             return false;
         } else {
+            if(mCommitRecord != null) mCommitRecord.currentBeforeCommit = getCurrentFragment();
+
             mFragmentTask.commit(ops);
+
+            if(mCommitRecord != null){
+                mCommitRecord.currentAfterCommit = getCurrentFragment();
+                mCommitRecord.ops = ops;
+            }
             return true;
         }
     }
@@ -405,6 +410,17 @@ class FragmentNavImpl implements FragmentNav {
         mIsRestoring = mIsActivitySavedInstanceState = false;
         commitPendingOps();
         commitPendingCalls();
+    }
+
+    private CommitRecord mCommitRecord;
+
+    FragmentNavImpl allowRecordCommit(){
+        mCommitRecord = new CommitRecord();
+        return this;
+    }
+
+    @Nullable CommitRecord getCommitRecord(){
+        return mCommitRecord;
     }
 
     public void onBackPressed() {
@@ -650,6 +666,26 @@ class FragmentNavImpl implements FragmentNav {
             }
 
             return super.equals(obj);
+        }
+    }
+
+    class CommitRecord {
+        private ArrayList<Op> ops;
+        private @Nullable FnFragment currentBeforeCommit;
+        private @Nullable FnFragment currentAfterCommit;
+
+        public @NonNull ArrayList<Op> getOps() {
+            return ops == null ? new ArrayList<Op>() : ops;
+        }
+
+        @Nullable
+        public FnFragment getCurrentBeforeCommit() {
+            return currentBeforeCommit;
+        }
+
+        @Nullable
+        public FnFragment getCurrentAfterCommit() {
+            return currentAfterCommit;
         }
     }
 }

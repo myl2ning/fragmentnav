@@ -15,6 +15,7 @@ import junit.framework.Assert.assertTrue
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
+import ray.easydev.fragmentnav.log.Log
 import ray.easydev.fragmentnav.test.R
 import java.lang.StringBuilder
 
@@ -42,9 +43,12 @@ open class BaseFmTest {
         internal set
 
     lateinit var fragmentNav: FragmentNav
-
     lateinit var instrumentation : Instrumentation
     lateinit var mHandler : Handler
+
+    internal val commitRecord: FragmentNavImpl.CommitRecord
+        get() = (fragmentNav as FragmentNavImpl).commitRecord!!
+
     @Before
     fun setup() {
         context = InstrumentationRegistry.getTargetContext()
@@ -53,6 +57,10 @@ open class BaseFmTest {
         fragmentManager = activity.supportFragmentManager
 
         fragmentNav = ((activity as FnActivity).fragmentNav)
+        (fragmentNav as FragmentNavImpl).apply {
+            allowRecordCommit()
+        }
+
         fnFragments = FnFragments(fragmentNav)
         sysFragments = SysFragments(fragmentManager)
 
@@ -68,14 +76,7 @@ open class BaseFmTest {
     }
 
     fun<T : FnFragment> startFragmentKt(vararg intents: FragmentIntent): T {
-//        return (fnFragments.currentFragment.startFragment(*intents) as T).apply {
-//            checkAnimationState(current<T>()::class.java, intents.last().targetCls)
-//        }
-//
-        return fnFragments.currentFragment.run {
-            checkAnimationState(this::class.java, intents.last().targetCls)
-            startFragment(*intents)
-        } as T
+        return fnFragments.currentFragment.startFragment(*intents) as T
     }
 
     fun finishKt(){
@@ -126,6 +127,10 @@ open class BaseFmTest {
             get() = fragmentManager.fragments.filter{ it != null}
 
     }
+
+//    internal fun commitRecord() : FragmentNavImpl.CommitRecord? {
+//        return (fragmentNav as FragmentNavImpl).commitRecord
+//    }
 
     internal fun checkOrder() {
         if (fnFragments.currentFragment === sysFragments.currentFragment) {
@@ -189,18 +194,23 @@ open class BaseFmTest {
         Assert.assertTrue(view == viewGroup.getChildAt(viewGroup.childCount - 1))
     }
 
-    fun checkAnimationState(cls: Class<out Fragment>, cls1: Class<out Fragment>){
+    fun checkAnimationState(classes: List<Class<out Fragment>>){
         mHandler.postDelayed({
             val result = sysFragments.fragments.filter {
                 (it.view?.animation?.hasStarted() ?: false) && !((it.view?.animation?.hasEnded()) ?: true)
             }.map { it::class.java }
-            assertTrue(result.size == 2 && result.contains(cls) && result.contains(cls1))
+
+            assertTrue(result.size == classes.size)
+            classes.forEach {
+                assertTrue(result.contains(it))
+            }
         }, 50)
 
     }
 
     companion object {
         init {
+            Log.setLogLevel(false, 0)
             FragmentIntent.getDefault().setAnim(R.anim.page_in, R.anim.page_out, R.anim.page_show, R.anim.page_hide)
         }
 

@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import ray.easydev.fragmentnav.FnFragmentActivity;
 import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.sample.fragments.FmEnter;
-import ray.easydev.fragmentnav.utils.Log;
+import ray.easydev.fragmentnav.log.Log;
 
 
 /**
@@ -56,7 +56,7 @@ public class MainActivity extends FnFragmentActivity {
         return new FragmentIntent[]{
                 new FragmentIntent(FmEnter.class)
                         //Disable the start animation to avoid the conflict with the activity's start animation
-                        .addFlag(FragmentIntent.FLAG_NO_START_ANIMATION)
+                        .addFlag(FragmentIntent.FLAG_NO_ANIMATION)
         };
     }
 }

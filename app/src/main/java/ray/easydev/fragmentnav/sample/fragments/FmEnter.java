@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -23,10 +24,10 @@ import java.util.List;
 
 import ray.easydev.fragmentnav.FnFragment;
 import ray.easydev.fragmentnav.FragmentIntent;
+import ray.easydev.fragmentnav.log.Log;
 import ray.easydev.fragmentnav.sample.Consts;
 import ray.easydev.fragmentnav.sample.R;
 import ray.easydev.fragmentnav.sample.utils.Utils;
-import ray.easydev.fragmentnav.utils.Log;
 
 
 /**
@@ -55,16 +56,14 @@ public class FmEnter extends FnFragment implements Consts {
 
     private void initHandler(){
         if(mHandler != null) return;
-        mHandler = new Handler();
+        try {
+            Field field = FragmentActivity.class.getDeclaredField("mHandler");
+            field.setAccessible(true);
+            mHandler = (Handler) field.get(getActivity());
 
-//        try {
-//            Field field = FragmentActivity.class.getDeclaredField("mHandler");
-//            field.setAccessible(true);
-//            mHandler = (Handler) field.get(getActivity());
-//
-//        } catch (Exception e) {
-//            mHandler = new Handler();
-//        }
+        } catch (Exception e) {
+            mHandler = new Handler();
+        }
     }
 
     @Nullable
@@ -78,15 +77,15 @@ public class FmEnter extends FnFragment implements Consts {
         super.onViewCreated(view, savedInstanceState);
         ListView listView = (ListView) view.findViewById(R.id.listView);
         listView.setAdapter(new Adapter());
+
     }
 
     public final void startFragmentWithExtras(){
         //Create a fragment intent with a string extra
         FragmentIntent fragmentIntent = new FragmentIntent(Fm01.class).
-                putExtra(KEY_STRING, "StringExtra").addFlag(FragmentIntent.FLAG_NO_ANIMATION);
+                putExtra(KEY_STRING, "StringExtra");
         //Start the fragment
         startFragment(fragmentIntent);
-        checkAnimRunningState();
     }
 
     public final void startWithNewAnim(){
@@ -103,8 +102,6 @@ public class FmEnter extends FnFragment implements Consts {
                 new FragmentIntent(Fm12.class)
                         .addFlag(FragmentIntent.FLAG_NEW_TASK)
         );
-
-        checkAnimRunningState();
     }
 
     public final void startInNewTask(){
@@ -114,10 +111,9 @@ public class FmEnter extends FnFragment implements Consts {
     public final void batchStart(){
         FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
         FragmentIntent intent12 = new FragmentIntent(Fm12.class);
-        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK).addFlag(FragmentIntent.FLAG_NO_ANIMATION);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
 
         startFragment(intent11, intent12, intent21);
-        checkAnimRunningState();
     }
 
     public void testFinishTask(){
@@ -128,7 +124,6 @@ public class FmEnter extends FnFragment implements Consts {
         startFragment(intent11, intent12, intent21, intent22);
 
         setNextAction(intent22.getExtras(), FmBase.Action.FINISH_MY_TASK);
-        checkAnimRunningState();
     }
 
 
@@ -141,7 +136,7 @@ public class FmEnter extends FnFragment implements Consts {
         setNextAction(
                 intent23.getExtras(),
                 FmBase.Action.START,
-                new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_BRING_TO_FRONT).addFlag(FragmentIntent.FLAG_NO_ANIMATION)
+                new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_BRING_TO_FRONT)
         );
     }
 

@@ -10,6 +10,7 @@ android {
         versionCode version_code
         versionName version_name
 
+        testApplicationId "ray.easydev.fragmentnav.test"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -26,6 +27,10 @@ android {
         }
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
 }
 
 dependencies {
@@ -40,4 +45,100 @@ dependencies {
 }
 repositories {
     mavenCentral()
+}
+
+
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+def siteUrl = 'https://github.com/myl2ning/fragmentnav'   // 项目的主页
+def gitUrl = 'https://github.com/myl2ning/fragmentnav.git'   // Git仓库的url
+group = android.defaultConfig.applicationId
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    pkg {
+        repo = 'fragmentnav'//自己创建的仓库名字
+        name = 'fragmentnav'//上传到JCenter的名字,最终引用的名字
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ['Apache-2.0']//不能随便写，只能是仓库创建时选择的license type
+        userOrg = 'jiuli' //自己创建的organization名称
+        publish = true // 是否是公开项目，公开别人可以引用
+
+        version {
+            name = android.defaultConfig.versionName
+            desc = 'FragmentNav.'//描述，自己定义
+            released  = new Date()
+            vcsTag = "${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}"
+            attributes = ['gradle-plugin': 'com.use.less:com.use.less.gradle:gradle-useless-plugin']
+        }
+    }
+    configurations = ['archives']
+}
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                // Add your description here
+                name 'Android FragmentNav'
+                description 'A util to start and manage fragment.'
+                url siteUrl
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'myl2ning'        //填写bintray或者github的用户名
+                        name 'ZhangLei'         //姓名
+                        email 'zhangleiseanmin@163.com'//邮箱
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+task javadoc(type: Javadoc) {
+    failOnError false //必须添加以免出错
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+javadoc {
+    options{
+        //如果你的项目里面有中文注释的话，必须将格式设置为UTF-8，不然会出现乱码
+        encoding "UTF-8"
+        charSet 'UTF-8'
+        author true
+        version true
+        links "http://docs.oracle.com/javase/7/docs/api"
+    }
 }
