@@ -174,7 +174,7 @@ startFragment(intent11, intent12, intent21);
 //Finish the task current fragment belongs
 finishTask();
 
-//Finish the tasks by task id
+//Finish the tasks by task id. You can get task id by FragmentNav.taskIds() or FragmentNav.getTaskId()
 getFragmentNav().finishTasks(0, 1, 2)
 ```
 
@@ -186,6 +186,20 @@ getFragmentNav().finishTasks(0, 1, 2)
 //Bring fragment02 to front if it exists in tasks, else start a new one
 startFragment(new FragmentIntent(Fm02.class).addFlag(FragmentIntent.FLAG_BRING_TO_FRONT));
 ```
+
+
+
+##单元测试
+
+目前已经对主要实现逻辑进行了单元测试，结果如下，没有测试到的主要是一些Exception处理分支和一些暂未开放的功能，后续会尽量补上。
+
+![test_coverage](imgs/test_coverage.png)
+
+兼容性测试结果如下:
+
+| Android Sdk Version           | Android Support Version |
+| ----------------------------- | ----------------------- |
+| 4.2.2, 4.4.4, 5.1, 6.0.1, 7.0 | 24.2.1, 25.3.0, 26.1.0  |
 
 
 
