@@ -15,10 +15,17 @@ FragmentNav可以让你像启动activity一样方便启动的fragment，基于Ta
 - 支持startFragmentForResult操作
 
 
-
 ## 准备
 
-1、创建一个Activity继承FnFragmentActivity或FnAppCompatActivity，以继承FnFragmentActivity为例:
+1、添加依赖
+
+```groovy
+compile 'ray.easydev.fragmentnav:fragmentnav:0.1.0'
+```
+
+
+
+2、创建一个Activity继承FnFragmentActivity或FnAppCompatActivity，以继承FnFragmentActivity为例:
 
 ##### MainActivity.java
 
@@ -70,17 +77,52 @@ public class MainActivity extends FnFragmentActivity {
 
 ```
 
-
-
-2、创建一个Fragment继承FnFragment
+或者，你可以实现你自己的Activity，例如：
 
 ```java
-class BaseFragment extends FnFragment {
+public class MyActivity extends FragmentActivity implements FnActivity {
+    private FragmentNav mFragmentNav;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        //FragmentNav must be created before super.onCreate
+        mFragmentNav = FragmentNavHelper.createBeforeSuperOnCreate(this, R.id.fragment_container, savedInstanceState);
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        if(savedInstanceState == null){
+            //If this app is not in recovery, start a new fragment
+            mFragmentNav.startFragment(null, new FragmentIntent(FmEnter.class)
+                    .addFlag(FragmentIntent.FLAG_NO_START_ANIMATION));
+        }
+    }
+
+    @NonNull
+    @Override
+    public FragmentNav getFragmentNav() {
+        return mFragmentNav;
+    }
+
+    @Override
+    public void onBackPressed() {
+        //Pass back pressed event to FragmentNav
+        FragmentNavHelper.onBackPressed(getFragmentNav());
+    }
+}
+```
+
+
+
+3、继承FnFragment实现自己的Fragment
+
+```java
+class FmEnter extends FnFragment {
   
 }
 ```
 
-**然后就可以愉快的使用FragmentNav了😀**
+**开始愉快的使用FragmentNav吧😀**
 
 
 
