@@ -141,9 +141,10 @@ public class FmEnter extends FnFragment implements Consts {
     }
 
 
-    private void setNextAction(Bundle bundle, FmBase.Action action, FragmentIntent... intents){
+    private Bundle setNextAction(Bundle bundle, FmBase.Action action, FragmentIntent... intents){
         bundle.putSerializable(KEY_ACTION, action);
         bundle.putParcelableArray(KEY_ACTION_ARG, intents);
+        return bundle;
     }
 
     @Override

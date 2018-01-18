@@ -26,6 +26,7 @@ android {
             testCoverageEnabled false
         }
     }
+
 }
 
 dependencies {
@@ -33,7 +34,7 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$android_support_version"
     implementation project(':fragmentnav')
 
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 repositories {
     mavenCentral()

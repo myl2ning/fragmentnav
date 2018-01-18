@@ -1,5 +1,6 @@
 package ray.easydev.fragmentnav;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,6 +13,10 @@ import ray.easydev.fragmentnav.log.Log;
  * Created by Ray on 2017/11/21.
  */
 public class FnFragment extends Fragment {
+    public final static int RESULT_OK = Activity.RESULT_OK;
+    public final static int RESULT_CANCELED = Activity.RESULT_CANCELED;
+    public final static int RESULT_FIRST_USER = Activity.RESULT_FIRST_USER;
+
     public final static int INVALID_INT = -1;
     public final static int NO_ANIM = 0;
 
@@ -51,8 +56,8 @@ public class FnFragment extends Fragment {
         return getFragmentNav().startFragment(this, intents);
     }
 
-    public @NonNull FnFragment startFragmentForResult(int requestCode, FragmentIntent intent){
-        return getFragmentNav().startFragmentForResult(this, requestCode, intent);
+    public @NonNull FnFragment startFragmentForResult(int requestCode, FragmentIntent... intents){
+        return getFragmentNav().startFragmentForResult(this, requestCode, intents);
     }
 
     public void finish(){

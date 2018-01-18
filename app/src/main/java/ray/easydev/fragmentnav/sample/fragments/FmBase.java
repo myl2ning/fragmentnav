@@ -167,6 +167,10 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
                         startFragment(intents);
                     }
                     break;
+                case START_FOR_RESULT:
+                    if(intents != null){
+                        startFragmentForResult(123, intents);
+                    }
                 case FINISH:
                     finish();
                     break;
@@ -174,7 +178,6 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
                     finishTask();
                     break;
                 case FINISH_TASKS:
-
                     break;
             }
         } else {
@@ -208,6 +211,7 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
 
     enum Action {
         START("Start Fragment"),
+        START_FOR_RESULT("Start Fragment For Result"),
         FINISH("Finish"),
         FINISH_MY_TASK("Finish My Task"),
         FINISH_TASKS("Finish Tasks");

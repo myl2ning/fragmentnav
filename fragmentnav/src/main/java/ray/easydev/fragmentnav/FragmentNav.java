@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface FragmentNav {
     @NonNull
-    FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent intent);
+    FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent... intents);
 
     @NonNull
     FnFragment startFragment(@Nullable FnFragment invoker, @NonNull FragmentIntent... intents);

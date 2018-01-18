@@ -69,7 +69,7 @@ class FragmentTaskManager {
         final SparseArray<ArrayList<FnFragment>> fragmentTasks = mFragmentTasks;
         final SparseArray<ArrayList<FnFragment>> copy = copy();
 
-        FnFragment lastRemoved = null;
+        FnFragment currentShow = showFragment;
         for (Op op : ops) {
             final FnFragment fragment = op.fragment;
             if (fragment == null) {
@@ -142,7 +142,8 @@ class FragmentTaskManager {
                         fragmentTasks.removeAt(taskIndex);
                         continue;
                     }
-                    lastRemoved = fragment;
+//                    if(firstRemoved == null) firstRemoved = fragment;
+
                     transaction.remove(fragment);
                     task.remove(fragment);
 
@@ -158,7 +159,6 @@ class FragmentTaskManager {
             }
         }
 
-        if(lastRemoved != null) Log.p(TAG, "Last remove:%s", lastRemoved.getClass().getSimpleName());
         try{
             //If all fragments are removed from task, just finish activity and let activity destroy the fragments
             if(!isEmpty()){
@@ -168,7 +168,7 @@ class FragmentTaskManager {
             }
 
             setCurrentFragment(showFragment);
-            setFragmentResult(lastRemoved, showFragment);
+            setFragmentResult(currentShow, showFragment);
         } catch (Exception e){
             Log.p(TAG, e);
             set(copy);
@@ -189,6 +189,7 @@ class FragmentTaskManager {
         if ((from != null) && (receiver != null) && from.getResultCode() != null) {
             FragmentNavImpl.RequestCodeInfo requestCodeInfo = FragmentNavImpl.RequestCodeInfo.readFrom(from.getArguments());
             if (requestCodeInfo != null && requestCodeInfo.getInvokerId().equals(receiver.getFnId())) {
+                Log.p(TAG, "Pass fragment result from %s to %s", from.getClass().getSimpleName(), receiver.getClass().getSimpleName());
                 receiver.onFragmentResult(requestCodeInfo.requestCode, from.getResultCode(), from.getResultData());
             }
         }

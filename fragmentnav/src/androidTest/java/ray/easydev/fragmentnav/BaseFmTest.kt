@@ -71,8 +71,8 @@ open class BaseFmTest {
         return fragmentNav.currentFragment as T
     }
 
-    fun<T : FnFragment> startFragmentForResultKt(reqCode: Int, intent: FragmentIntent): T {
-        return fnFragments.currentFragment.startFragmentForResult(reqCode, intent) as T
+    fun<T : FnFragment> startFragmentForResultKt(reqCode: Int, vararg intents: FragmentIntent): T {
+        return fnFragments.currentFragment.startFragmentForResult(reqCode, *intents) as T
     }
 
     fun<T : FnFragment> startFragmentKt(vararg intents: FragmentIntent): T {

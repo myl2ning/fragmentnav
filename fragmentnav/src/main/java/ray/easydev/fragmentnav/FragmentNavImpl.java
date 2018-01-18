@@ -67,8 +67,8 @@ class FragmentNavImpl implements FragmentNav {
         return mFragmentTask.hasFragment(cls);
     }
 
-    public @NonNull FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent intent){
-        return innerStartFragment(invoker, requestCode, intent);
+    public @NonNull FnFragment startFragmentForResult(@Nullable FnFragment invoker, int requestCode, @NonNull FragmentIntent... intents){
+        return innerStartFragment(invoker, requestCode, intents);
     }
 
     public @NonNull FnFragment startFragment(@Nullable final FnFragment invoker, @NonNull final FragmentIntent... intents) {
@@ -83,8 +83,12 @@ class FragmentNavImpl implements FragmentNav {
         FnFragment finalFragment = invoker;
 
         RequestCodeInfo requestCodeInfo = null;
-        if(invoker != null && requestCode != null){
-            requestCodeInfo = new RequestCodeInfo(invoker.getFnId(), requestCode);
+        if(invoker != null){
+            if(requestCode != null){
+                requestCodeInfo = new RequestCodeInfo(invoker.getFnId(), requestCode);
+            } else {
+                requestCodeInfo = RequestCodeInfo.readFrom(invoker.getArguments());
+            }
         }
 
         for (FragmentIntent intent : intents) {
@@ -170,7 +174,8 @@ class FragmentNavImpl implements FragmentNav {
 
         for (Integer id : removeTaskIds) {
             List<FnFragment> fragments = getFragments(id);
-            for (FnFragment fragment : fragments) {
+            for(int i = fragments.size() - 1; i >= 0; i --){
+                FnFragment fragment = fragments.get(i);
                 Op op = new Op(Op.OP_REMOVE, fragment);
                 if(!hasRemoveAnim && op.exitAnim != 0){
                     hasRemoveAnim = true;
@@ -178,6 +183,14 @@ class FragmentNavImpl implements FragmentNav {
 
                 ops.add(op);
             }
+//            for (FnFragment fragment : fragments) {
+//                Op op = new Op(Op.OP_REMOVE, fragment);
+//                if(!hasRemoveAnim && op.exitAnim != 0){
+//                    hasRemoveAnim = true;
+//                }
+//
+//                ops.add(op);
+//            }
 
             ids.remove(id);
             if(currentId == id){

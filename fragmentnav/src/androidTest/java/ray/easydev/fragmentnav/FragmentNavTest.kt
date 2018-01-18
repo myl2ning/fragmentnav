@@ -10,6 +10,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import ray.easydev.fragmentnav.fragments.*
+import ray.easydev.fragmentnav.fragments.FmBase.EMPTY_RESULT
 
 /**
  * Created by Ray on 2017/12/4.
@@ -443,6 +444,87 @@ class FnTest : BaseFmTest() {
         }
     }
 
+    @Test
+    fun testStartFragmentsForResultInSameTask(){
+        val result = createFragmentResult()
+        startFragmentForResultKt<Fm11>(
+                result.requestCode,
+                FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
+        ).run {
+            waitActionPost()
+        }
+
+        startFragmentKt<Fm12>(
+                FragmentIntent(Fm12::class.java)
+        ).run {
+            waitActionPost()
+            setResult(result.resultCode, result.result)
+            finishTask()
+            waitActionPost()
+            current<Fm01>()
+        }.run {
+                    assertTrue(result == fragmentResult)
+                    checkState(1, Fm01::class.java)
+                }
+    }
+
+    @Test
+    fun testStartFragmentsForResultInDifferentTasks(){
+        val result = createFragmentResult()
+        startFragmentForResultKt<Fm11>(
+                result.requestCode,
+                FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
+        ).run {
+            waitActionPost()
+        }
+
+        startFragmentKt<Fm31>(
+                FragmentIntent(Fm12::class.java),
+                FragmentIntent(Fm21::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm22::class.java),
+                FragmentIntent(Fm31::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
+        ).run {
+            waitActionPost()
+            setResult(result.resultCode, result.result)
+            finishTasksKt(1, 2, 3)
+            waitActionPost()
+            current<Fm01>()
+        }.run {
+                    assertTrue(result == fragmentResult)
+                    checkState(1, Fm01::class.java)
+                }
+    }
+
+    @Test
+    fun testStartMultipleFragmentsForResult(){
+        val result = createFragmentResult()
+        startFragmentForResultKt<Fm32>(
+                result.requestCode,
+                FragmentIntent(Fm11::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm12::class.java),
+                FragmentIntent(Fm21::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm22::class.java),
+                FragmentIntent(Fm31::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK),
+                FragmentIntent(Fm32::class.java)
+        ).run {
+            waitActionPost()
+            setResult(result.resultCode, result.result)
+            finish()
+            waitActionPost()
+            current<Fm31>().apply {
+                Assert.assertTrue(fragmentResult == EMPTY_RESULT)
+            }
+        }.run {
+            setResult(result.resultCode, result.result)
+            finishTasksKt(1, 2, 3)
+            waitActionPost()
+            current<Fm01>()
+        }.run {
+                    assertTrue(result == fragmentResult)
+                    checkState(1, Fm01::class.java)
+                }
+    }
+
     private fun createFragmentResult(): FmBase.FragmentResult {
         return FmBase.FragmentResult(1, 2, "FragmentResultOK");
     }
@@ -576,6 +658,10 @@ class FnTest : BaseFmTest() {
         }
     }
 
+    @Test
+    fun main(){
+
+    }
 
 }
 

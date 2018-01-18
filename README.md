@@ -133,9 +133,10 @@ class FmEnter extends FnFragment {
 ```java
  //Create a fragment intent with a string extra
  FragmentIntent fragmentIntent = new FragmentIntent(Fm01.class).
-                putExtra(KEY_STRING, "StringExtra");
- //Start the fragment
- startFragment(fragmentIntent);
+                     putExtra(KEY_STRING, "StringExtra");
+      //Start the fragment
+      startFragment(fragmentIntent);
+ 
 ```
 
 
@@ -215,6 +216,9 @@ startFragment(new FragmentIntent(Fm02.class).addFlag(FragmentIntent.FLAG_BRING_T
 
 
 ## Versions
+
+##### Version 0.1.1 '18011801'
+- startFragmentForResult support start multiple fragments at once
 
 ##### Version 0.1.0 `17121901`
 - first working prototype
