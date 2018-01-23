@@ -388,6 +388,54 @@ class FnTest : BaseFmTest() {
     }
 
     @Test
+    fun testFindFragmentByClass(){
+        val fm1021 = startFragmentKt<Fm02>(
+                FragmentIntent(Fm02::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
+        ).run {
+            waitActionPost()
+            current<Fm02>()
+        }
+
+        startFragmentKt<Fm03>(
+                FragmentIntent(Fm03::class.java)
+        ).run {
+            waitActionPost()
+        }
+
+        val fm1022 = startFragmentKt<Fm02>(
+                FragmentIntent(Fm02::class.java)
+        ).run {
+            waitActionPost()
+            current<Fm02>()
+        }
+
+        val fm2021 = startFragmentKt<Fm02>(
+                FragmentIntent(Fm02::class.java).addFlag(FragmentIntent.FLAG_NEW_TASK)
+        ).run {
+            waitActionPost()
+            current<Fm02>()
+        }
+
+        startFragmentKt<Fm03>(
+                FragmentIntent(Fm03::class.java)
+        ).run {
+            waitActionPost()
+        }
+
+        val fm2022 = startFragmentKt<Fm02>(
+                FragmentIntent(Fm02::class.java)
+        ).run {
+            waitActionPost()
+            current<Fm02>()
+        }
+
+        assertTrue(fragmentNav.findFragment<Fm02>(Fm02::class.java, 0) == fm1021)
+        assertTrue(fragmentNav.findFragment<Fm02>(Fm02::class.java, FragmentNav.FQ_BACKWARD) == fm1022)
+        assertTrue(fragmentNav.findFragment<Fm02>(Fm02::class.java, FragmentNav.TQ_BACKWARD) == fm2021)
+        assertTrue(fragmentNav.findFragment<Fm02>(Fm02::class.java, (FragmentNav.TQ_BACKWARD or FragmentNav.FQ_BACKWARD)) == fm2022)
+    }
+
+    @Test
     fun testHasFragment(){
         startFragmentKt<Fm02>(FragmentIntent(Fm02::class.java))
         waitActionPost()

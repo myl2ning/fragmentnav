@@ -27,6 +27,7 @@ import ray.easydev.fragmentnav.FragmentIntent;
 import ray.easydev.fragmentnav.log.Log;
 import ray.easydev.fragmentnav.sample.Consts;
 import ray.easydev.fragmentnav.sample.R;
+import ray.easydev.fragmentnav.sample.utils.Androids;
 import ray.easydev.fragmentnav.sample.utils.Utils;
 
 
@@ -35,6 +36,7 @@ import ray.easydev.fragmentnav.sample.utils.Utils;
  */
 
 public class FmEnter extends FnFragment implements Consts {
+    final static int REQUEST_CODE = 9528;
 
     List<Item> items = new ArrayList<>();
     {
@@ -42,6 +44,8 @@ public class FmEnter extends FnFragment implements Consts {
         items.add(new Item("startWithNewAnim"));
         items.add(new Item("startInNewTask"));
         items.add(new Item("testFinishTask"));
+        items.add(new Item("startSingleFragmentForResult"));
+        items.add(new Item("startFragmentsForResult"));
         items.add(new Item("batchStart"));
         items.add(new Item("bringToFront"));
     }
@@ -86,6 +90,7 @@ public class FmEnter extends FnFragment implements Consts {
                 putExtra(KEY_STRING, "StringExtra");
         //Start the fragment
         startFragment(fragmentIntent);
+
     }
 
     public final void startWithNewAnim(){
@@ -126,6 +131,21 @@ public class FmEnter extends FnFragment implements Consts {
         setNextAction(intent22.getExtras(), FmBase.Action.FINISH_MY_TASK);
     }
 
+    public void startSingleFragmentForResult(){
+        FragmentIntent intent01 = new FragmentIntent(Fm01.class);
+        startFragmentForResult(REQUEST_CODE, intent01);
+        setNextAction(intent01.getExtras(), FmBase.Action.FINISH_WITH_RESULT);
+    }
+
+    public void startFragmentsForResult(){
+        FragmentIntent intent01 = new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
+        FragmentIntent intent23 = new FragmentIntent(Fm23.class);
+        startFragmentForResult(REQUEST_CODE, intent01, intent21, intent23);
+
+        setNextAction(intent21.getExtras(), FmBase.Action.FINISH_WITH_RESULT);
+        setNextAction(intent23.getExtras(), FmBase.Action.FINISH_WITH_RESULT);
+    }
 
     public void bringToFront(){
         FragmentIntent intent01 = new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
@@ -151,6 +171,7 @@ public class FmEnter extends FnFragment implements Consts {
     public void onFragmentResult(int requestCode, int resultCode, Object data) {
         super.onFragmentResult(requestCode, resultCode, data);
         Log.p(getClass(), "onFragmentResult:%s, %s, %s", requestCode, resultCode, data);
+        Androids.shortToast(getContext(), "onFragmentResult:RequestCode=>%s, ResultCode=>%s, Data=>%s", requestCode, resultCode, data);
     }
 
 

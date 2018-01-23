@@ -54,9 +54,9 @@ public class MainActivity extends FnFragmentActivity {
     @Override
     public FragmentIntent[] getStartIntents() {
         return new FragmentIntent[]{
-                new FragmentIntent(FmEnter.class)
+                new FragmentIntent(FmEnter.class, getIntent().getExtras())
                         //Disable the start animation to avoid the conflict with the activity's start animation
-                        .addFlag(FragmentIntent.FLAG_NO_ANIMATION)
+                        .addFlag(FragmentIntent.FLAG_NO_START_ANIMATION)
         };
     }
 }

@@ -58,6 +58,26 @@ class FragmentTaskManager {
         return copy;
     }
 
+    @Nullable
+    <T extends FnFragment> T findFragment(@NonNull Class<? extends FnFragment> cls, int directionFlags) {
+        int size = mFragmentTasks.size();
+        for(int i = 0; i < size; i ++){
+            int key = FnUtils.hasBit(directionFlags, FragmentNav.TQ_BACKWARD) ? (size - 1 - i) : i;
+            List<FnFragment> fragments = mFragmentTasks.valueAt(key);
+
+            int fsize = fragments.size();
+            for (int j = 0; j < fsize; j ++) {
+                int index = FnUtils.hasBit(directionFlags, FragmentNav.FQ_BACKWARD) ? (fsize - 1- j) : j;
+                FnFragment fragment = fragments.get(index);
+                if(fragment.getClass().equals(cls)){
+                    return (T) fragment;
+                }
+            }
+        }
+
+        return null;
+    }
+
     void commit(ArrayList<Op> ops) {
         if (ops == null || ops.isEmpty()) {
             return;

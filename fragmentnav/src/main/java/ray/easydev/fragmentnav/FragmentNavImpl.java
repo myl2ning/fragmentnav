@@ -57,9 +57,16 @@ class FragmentNavImpl implements FragmentNav {
         return mFragmentTask.getCurrentFragment();
     }
 
+    @Nullable
     @Override
     public <T extends FnFragment> T findFragment(@NonNull String id) {
         return mFragmentTask.findFragment(id);
+    }
+
+    @Nullable
+    @Override
+    public <T extends FnFragment> T findFragment(@NonNull Class<? extends FnFragment> cls, int directionFlags) {
+        return mFragmentTask.findFragment(cls, directionFlags);
     }
 
     @Override

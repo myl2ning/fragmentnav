@@ -10,6 +10,7 @@ version = version_name
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
+//gradlew install & gradlew bintrayUpload
 bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")

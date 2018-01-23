@@ -17,7 +17,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import ray.easydev.fragmentnav.FnFragment;
+import ray.easydev.fragmentnav.FnUtils;
 import ray.easydev.fragmentnav.FragmentIntent;
+import ray.easydev.fragmentnav.FragmentNav;
 import ray.easydev.fragmentnav.sample.Consts;
 import ray.easydev.fragmentnav.sample.R;
 import ray.easydev.fragmentnav.sample.utils.Androids;
@@ -37,9 +39,13 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
             @Override
             public void run() {
                 showFragmentState();
-                tvLog.append("\n\n ***** onNewIntent Invoked *****");
+                tvLog.append("\n\n" + logTitle("onNewIntent"));
             }
         });
+    }
+
+    private String logTitle(String title){
+        return "******* " + title + " *******\n";
     }
 
     @Nullable
@@ -50,8 +56,11 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
         ((TextView) childView.findViewById(R.id.tv_title)).setText(getClass().getSimpleName());
         tvLog = (TextView) childView.findViewById(R.id.tv_log);
         tvLog.setMovementMethod(new ScrollingMovementMethod());
+        if(getArguments().containsKey(KEY_STRING)){
+            tvLog.setText(logTitle("Extras") + getArguments().getString(KEY_STRING) + "\n");
+        }
 
-        Button actionBtn = (Button) childView.findViewById(R.id.test_btn);
+        Button actionBtn = childView.findViewById(R.id.test_btn);
         Action action = (Action) getArguments().getSerializable(KEY_ACTION);
         if(action != null){
             actionBtn.setText(action.text);
@@ -61,12 +70,12 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
 
         actionBtn.setOnClickListener(this);
 
-        childView.post(new Runnable() {
-            @Override
-            public void run() {
-                showFragmentState();
-            }
-        });
+//        childView.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                showFragmentState();
+//            }
+//        });
 
         Androids.setOnClickListener(childView, new View.OnClickListener() {
             @Override
@@ -75,13 +84,13 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
                     case R.id.btn_goback:
                         finish();
                         break;
-                    case R.id.test_btn2:
+                    case R.id.menu_to_setting:
                         openPermissionSettnig();
                         break;
                 }
 
             }
-        }, R.id.btn_goback, R.id.test_btn2);
+        }, R.id.btn_goback, R.id.menu_to_setting);
         return childView;
     }
 
@@ -109,7 +118,7 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
 
     protected void showFragmentState(){
         List<Fragment> fragmentList = getFragmentsInFragmentManager();
-        StringBuilder sb = new StringBuilder("ViewsCount:").append(((ViewGroup) getActivity().findViewById(R.id.fragment_container)).getChildCount());
+        StringBuilder sb = new StringBuilder(logTitle("Fragments State") + "ViewsCount:").append(((ViewGroup) getActivity().findViewById(R.id.fragment_container)).getChildCount());
         sb.append(" FragmentsSize:").append(fragmentSize());
         for (Fragment fragment : fragmentList) {
             if(fragment != null){
@@ -121,7 +130,7 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
             }
         }
 
-        tvLog.setText(sb.toString());
+        tvLog.setText(tvLog.getText() + sb.toString());
     }
 
     private List<Fragment> getFragmentsInFragmentManager(){
@@ -167,10 +176,11 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
                         startFragment(intents);
                     }
                     break;
-                case START_FOR_RESULT:
-                    if(intents != null){
-                        startFragmentForResult(123, intents);
-                    }
+                case FINISH_WITH_RESULT:{
+                    setResult(RESULT_OK, "FragmentResultFrom[" + getClass().getSimpleName() + "]");
+                    toFmEnter();
+                }
+                break;
                 case FINISH:
                     finish();
                     break;
@@ -186,20 +196,15 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
     }
 
     private void toFmEnter(){
-        if(getFragmentNav().getTaskId(this) == 0){
+        FnFragment enter = getFragmentNav().findFragment(FmEnter.class, 0);
+        if(enter == null) return;
+        if(enter.getTaskId() == getTaskId()){
             finish();
         } else {
-            List<Integer> ids = getFragmentNav().taskIds();
-            ids.remove(Integer.valueOf(0));
-            int[] ints = new int[ids.size()];
-
-            int i= 0;
-            for (Integer id : ids) {
-                ints[i] = id;
-                i ++;
-            }
-
-            getFragmentNav().finishTasks(ints);
+            FragmentNav fragmentNav = getFragmentNav();
+            List<Integer> ids = fragmentNav.taskIds();
+            ids.remove(enter.getTaskId());
+            fragmentNav.finishTasks(FnUtils.toIntArray(ids.toArray(new Integer[ids.size()])));
         }
     }
 
@@ -211,8 +216,8 @@ public class FmBase extends FnFragment implements View.OnClickListener, Consts {
 
     enum Action {
         START("Start Fragment"),
-        START_FOR_RESULT("Start Fragment For Result"),
         FINISH("Finish"),
+        FINISH_WITH_RESULT("Back FmEnter With Result"),
         FINISH_MY_TASK("Finish My Task"),
         FINISH_TASKS("Finish Tasks");
         String text;
