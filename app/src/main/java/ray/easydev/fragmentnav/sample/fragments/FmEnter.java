@@ -43,7 +43,7 @@ public class FmEnter extends FnFragment implements Consts {
         items.add(new Item("startFragmentWithExtras"));
         items.add(new Item("startWithNewAnim"));
         items.add(new Item("startInNewTask"));
-        items.add(new Item("testFinishTask"));
+        items.add(new Item("FinishTask"));
         items.add(new Item("startSingleFragmentForResult"));
         items.add(new Item("startFragmentsForResult"));
         items.add(new Item("batchStart"));
@@ -87,7 +87,7 @@ public class FmEnter extends FnFragment implements Consts {
     public final void startFragmentWithExtras(){
         //Create a fragment intent with a string extra
         FragmentIntent fragmentIntent = new FragmentIntent(Fm01.class).
-                putExtra(KEY_STRING, "StringExtra");
+                putExtra(KEY_STRING, "StringExtra").setAnim(R.anim.page_start, R.anim.page_finish, R.anim.page_show, R.anim.page_hide );
         //Start the fragment
         startFragment(fragmentIntent);
 
@@ -121,10 +121,10 @@ public class FmEnter extends FnFragment implements Consts {
         startFragment(intent11, intent12, intent21);
     }
 
-    public void testFinishTask(){
+    public void FinishTask(){
         FragmentIntent intent11 = new FragmentIntent(Fm11.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
         FragmentIntent intent12 = new FragmentIntent(Fm12.class);
-        FragmentIntent intent21 = new FragmentIntent(Fm21.class);
+        FragmentIntent intent21 = new FragmentIntent(Fm21.class).addFlag(FragmentIntent.FLAG_NEW_TASK);
         FragmentIntent intent22 = new FragmentIntent(Fm22.class);
         startFragment(intent11, intent12, intent21, intent22);
 
@@ -155,7 +155,7 @@ public class FmEnter extends FnFragment implements Consts {
 
         setNextAction(
                 intent23.getExtras(),
-                FmBase.Action.START,
+                FmBase.Action.BRING_TO_FRONT,
                 new FragmentIntent(Fm01.class).addFlag(FragmentIntent.FLAG_BRING_TO_FRONT)
         );
     }
@@ -171,7 +171,7 @@ public class FmEnter extends FnFragment implements Consts {
     public void onFragmentResult(int requestCode, int resultCode, Object data) {
         super.onFragmentResult(requestCode, resultCode, data);
         Log.p(getClass(), "onFragmentResult:%s, %s, %s", requestCode, resultCode, data);
-        Androids.shortToast(getContext(), "onFragmentResult:RequestCode=>%s, ResultCode=>%s, Data=>%s", requestCode, resultCode, data);
+        Androids.shortToast(getContext(), "onFragmentResult:\nRequestCode=>%s\nResultCode=>%s\nData=>%s", requestCode, resultCode, data);
     }
 
 

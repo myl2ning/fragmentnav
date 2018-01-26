@@ -41,8 +41,8 @@ ext {
     min_sdk_version = 15
     target_sdk_version = 26
     compile_sdk_version = 26
-    version_code = 18011801
-    version_name = '0.1.1'
+    version_code = 18012601
+    version_name = '0.1.2'
 }
 
 
