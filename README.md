@@ -20,7 +20,7 @@ FragmentNav可以让你像启动activity一样方便启动的fragment，基于Ta
 1、添加依赖
 
 ```groovy
-compile 'ray.easydev.fragmentnav:fragmentnav:0.1.0'
+compile 'ray.easydev.fragmentnav:fragmentnav:0.1.2'
 ```
 
 
@@ -216,6 +216,10 @@ startFragment(new FragmentIntent(Fm02.class).addFlag(FragmentIntent.FLAG_BRING_T
 
 
 ## Versions
+##### Version 0.1.2 `18012601`
+- Add FnFragment.getTaskId() method
+- Add FragmentNav.findFragment(Class<? extends FnFragment> cls, int directionFlags) method
+- Improve unit test and sample app
 
 ##### Version 0.1.1 `18011801`
 - startFragmentForResult support start multiple fragments at once
